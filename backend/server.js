@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors');
 const multer  = require('multer');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -10,6 +11,12 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+
+const uploadFolder = './uploads/';
+
+if (!fs.existsSync(uploadFolder)) {
+  fs.mkdirSync(uploadFolder);
+}
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
