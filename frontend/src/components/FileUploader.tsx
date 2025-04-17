@@ -1,15 +1,16 @@
-import React, { useState, DragEvent } from "react";
+import axios from "axios";
+import React, { DragEvent, useState } from "react";
 
 // Funcție mock ce simuleaza "upload-ul" fișierului la un server
-const mockUploadFile = (
-  file: File
-): Promise<{ success: boolean; fileName: string }> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, fileName: file.name });
-    }, 1000);
-  });
-};
+// const mockUploadFile = (
+//   file: File
+// ): Promise<{ success: boolean; fileName: string }> => {
+//   return new Promise((resolve) => {
+//     setTimeout(() => {
+//       resolve({ success: true, fileName: file.name });
+//     }, 1000);
+//   });
+// };
 
 const FileUploader: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -43,13 +44,27 @@ const FileUploader: React.FC = () => {
     setIsUploading(true);
     setUploadStatus(null);
 
+    const formData = new FormData();
+    formData.append('file',file);
+
     try {
-      const response = await mockUploadFile(file);
-      if (response.success) {
-        setUploadStatus(`File "${response.fileName}" uploaded successfully!`);
+      //const response = await mockUploadFile(file);
+
+      const response = await axios.post('http://localhost:3000/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const data = response.data;
+      if (data.success) {
+        setUploadStatus(`File "${data.originalName}" uploaded successfully!`);
       } else {
         setUploadStatus("File upload failed.");
       }
+      // if (response.success) {
+      //   setUploadStatus(`File "${response.fileName}" uploaded successfully!`);
+      // } else {
+      //   setUploadStatus("File upload failed.");
+      // }
     } catch (error) {
       setUploadStatus("An error occurred while uploading the file.");
     } finally {
