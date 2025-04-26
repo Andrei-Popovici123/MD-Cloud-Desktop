@@ -9,8 +9,8 @@ function App() {
 
   return (
     <>
-      <FileUploader />
-      {/* <MultiScanning /> */}
+      {/*   <FileUploader /> */}
+      <MultiScanning />
     </>
   );
 }
