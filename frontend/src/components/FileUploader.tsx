@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { DragEvent, useState } from "react";
-import MultiScanning from "./MultiScanning"; // calea către componenta ta de modal
+import MultiScanning from "./MultiScanning";
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
 
