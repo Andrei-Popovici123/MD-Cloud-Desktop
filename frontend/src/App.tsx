@@ -10,9 +10,9 @@ function App() {
 
   return (
     <>
-      <FileUploader />
+      {/* <FileUploader /> */}
       {/* <MultiScanning /> */}
-      {/* <ProactiveDLPPage /> */}
+      <ProactiveDLPPage />
     </>
   );
 }
