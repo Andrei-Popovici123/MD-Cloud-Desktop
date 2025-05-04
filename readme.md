@@ -9,7 +9,14 @@ docker compose build
 
 docker-compose up -d
 
+docker-compose watch
+
 docker-compose down // to close
 
-!! IMPORTANT: image for frontend currently not working due to vite not beeing exposed to docker.
-to be fixed 
+
+
+Vite issue has been fixed
+
+Next optimisation of dockerfiles
+docker image for mongo
+endpoint to db and migrations
