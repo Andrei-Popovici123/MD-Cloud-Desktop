@@ -19,20 +19,20 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   children,
 }) => {
   return (
-    <div
-      className={`
-        bg-gray-800 rounded-md p-6
-        ${className}
-      `}
-    >
-      {/* Header: titlu + tooltip + badge */}
-      <div className="flex items-center justify-between mb-4">
+    <div className={`bg-gray-800 rounded-md p-6 ${className}`}>
+      {/* Header */}
+      <div className="mb-2">
         <div className="flex items-center space-x-2">
           <h4 className="text-lg font-semibold text-white">{title}</h4>
           {infoTooltip && <Info className="w-4 h-4 text-gray-400" />}
         </div>
-        <StatusBadge verdict={badgeText} />
+        {/* Badge moved below the title */}
+        <div className="mt-2">
+          <StatusBadge verdict={badgeText} />
+        </div>
       </div>
+
+      {/* Content */}
       {children}
     </div>
   );
