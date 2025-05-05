@@ -48,7 +48,7 @@ const items = [
 ];
 
 export const SidebarNav: React.FC = () => (
-  <nav className="space-y-10">
+  <nav className="w-64 md:w-56 sm:w-48 xs:w-40 space-y-6">
     {items.map((item) => (
       <SidebarItem
         key={item.id}
