@@ -1,0 +1,15 @@
+FROM mongo:7.0.5-jammy
+
+
+RUN mkdir -p /data/db /docker-entrypoint-initdb.d \
+    && chown -R mongodb:mongodb /data/db /docker-entrypoint-initdb.d \
+    && chmod -R 700 /data/db /docker-entrypoint-initdb.d
+
+
+COPY ./init /docker-entrypoint-initdb.d/
+
+
+EXPOSE 27017
+
+
+CMD ["mongod"]
