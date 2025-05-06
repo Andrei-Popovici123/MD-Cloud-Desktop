@@ -1,10 +1,12 @@
+db = db.getSiblingDB("MetadefenderCloudDesktopDB");
+
 db.createUser({
-    user: MONGO_ROOT_USER,
-    pwd: MONGO_ROOT_PASSWORD,  
-    roles: [
-      {
-        role: "root",
-        db: "admin"
-      }
-    ]
-  });
+  user: "serviceUser",
+  pwd: "parola01",
+  roles: [
+    {
+      role: "readWrite",
+      db: "MetadefenderCloudDesktopDB"
+    }
+  ]
+});
