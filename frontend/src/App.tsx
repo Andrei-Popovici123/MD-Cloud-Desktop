@@ -2,17 +2,13 @@ import { useState } from "react";
 import FileUploader from "./components/FileUploader";
 import MultiScanning from "./components/MultiScanning";
 import { ProactiveDLPPage } from "./components/proactivedlp/ProactiveDLPPage";
+import { Routes, Route } from "react-router-dom";
 
-function App() {
-  const [count, setCount] = useState(0);
-
+export default function App() {
   return (
-    <>
-      <FileUploader />
-      {/* <MultiScanning /> */}
-      {/* <ProactiveDLPPage /> */}
-    </>
+    <Routes>
+      <Route path="/" element={<FileUploader />} />
+      <Route path="/proactive-dlp" element={<ProactiveDLPPage />} />
+    </Routes>
   );
 }
-
-export default App;
