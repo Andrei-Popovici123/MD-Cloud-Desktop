@@ -10,8 +10,13 @@ const multiscanRouter = require("./src/multiScan/route");
 
 const app = express();
 app.use(cors());
+app.use(
+  cors({
+    origin: "http://192.168.1.135:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
-
 
 app.use("/", uploadRouter);
 app.use("/", cdrRouter);
