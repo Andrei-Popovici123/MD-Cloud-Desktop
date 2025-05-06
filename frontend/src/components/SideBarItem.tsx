@@ -18,7 +18,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     <div className="ml-4">
       <div className="text-gray-100 font-medium">{title}</div>
       <div
-        className="mt-1 inline-block text-xs font-semibold text-white px-2 py-0.5 rounded"
+        className="mt-1 inline-block text-xs font-semibold text-white px-2 py-0.5 rounded whitespace-nowrap"
         style={{ backgroundColor: statusColor }}
       >
         {status}
