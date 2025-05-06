@@ -31,7 +31,10 @@ const MultiScanning: React.FC = () => {
   const anyThreats = results.some((r) => r.verdict !== "No Threats Detected");
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 md:p-6 space-y-3 md:space-y-4">
+    <div
+      id="multiscanning-card"
+      className="bg-gray-800 rounded-lg p-4 md:p-6 space-y-3 md:space-y-4"
+    >
       <div className="flex items-center justify-between">
         <h3 className="text-white text-lg md:text-xl font-semibold">
           Multiscanning

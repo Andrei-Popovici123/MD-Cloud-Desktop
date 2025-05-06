@@ -79,6 +79,7 @@ export const ProactiveDLP: React.FC<ProactiveDLPProps> = ({ items }) => {
   return (
     <div className="relative">
       <SectionCard
+        id="proactive-dlp-card"
         title="Proactive DLP"
         badgeText="No Issues Detected"
         infoTooltip="This section scans for sensitive data in your document"

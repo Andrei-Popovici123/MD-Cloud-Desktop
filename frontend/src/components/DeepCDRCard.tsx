@@ -13,6 +13,7 @@ const data = [
 export const DeepCDRCard: React.FC = () => {
   return (
     <SectionCard
+      id="deep-cdr-card"
       title="Deep CDR™ Regeneration"
       badgeText="Sanitization Available"
       infoTooltip="Files are sanitized by removing unsupported objects and regenerating safe formats."

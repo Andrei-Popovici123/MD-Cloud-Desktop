@@ -4,6 +4,7 @@ import { StatusBadge } from "./StatusBadge";
 import { Info } from "lucide-react";
 
 interface SectionCardProps {
+  id?: string;
   title: string;
   badgeText: string;
   infoTooltip?: string;
