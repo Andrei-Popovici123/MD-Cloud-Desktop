@@ -16,7 +16,7 @@ async function postFile(filePath) {
     form,
     { headers: {
       apikey: apikey,
-      rule: "sanitize,dlp",
+      rule: "unarchive,sanitize,dlp",
       filename: path.basename(filePath)
     }}
   );
