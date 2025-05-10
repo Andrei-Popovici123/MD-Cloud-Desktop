@@ -1,0 +1,30 @@
+{
+  "name": "md-cloud-desktop",
+  "version": "1.0.0",
+  "description": "Your Electron Desktop App",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^36.2.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.yourcompany.yourapp",
+    "productName": "MD Cloud Desktop",
+    "win": {
+      "target": "nsis",
+      "icon": "electron/build/md.ico"
+    },
+    "linux": {
+      "target": ["deb", "rpm", "AppImage"],
+      "category": "Utility"
+    },
+    "directories": {
+      "output": "electron/dist",
+      "buildResources": "electron/build"
+    }
+  }
+}
