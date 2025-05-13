@@ -3,7 +3,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const multer = require("multer");
 
-const uploadFolder = "./uploads/";
+const uploadFolder = path.resolve(__dirname, "../../uploads");
 
 if (!fs.existsSync(uploadFolder)) {
   fs.mkdirSync(uploadFolder);

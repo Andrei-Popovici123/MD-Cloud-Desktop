@@ -8,7 +8,10 @@ const scanDetailSchema = new Schema({
 }, { _id: false });
 
 const scanResultsSchema = new Schema({
-  scan_details: { type: Map, of: scanDetailSchema },
+  scan_details: {
+    type: Map,
+    of: scanDetailSchema
+  },
   scan_all_result_i: Number,
   current_av_result_i: Number,
   start_time: Date,
@@ -30,52 +33,88 @@ const extractedFiles_filesInArchive = new Schema({
   detected_by: Number
 }, { _id: false });
 
-const dlpInfo_Hits = new Schema({
-  after: String,
+const ruleHitSchema = new Schema({
   before: String,
-  certainty: {
-    type: String,
-    enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High']
-  },
-  certainty_score: Number,
+  after: String,
   hit: String,
   location: String,
+  certainty: {
+    type: String,
+    enum: ["Very Low","Low","Medium","High","Very High"]
+   },
+  certainty_score: Number,
   tryRedact: Boolean
 }, { _id: false });
 
-const dlp_info = new Schema({
-  certainty: {
-    type: String,
-    enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High']
+const ruleSchema = new Schema({
+  display_name: String,
+  hits: [ruleHitSchema],
+  metadata_removal:{
+    result: String
   },
-  errors: Schema.Types.Mixed,
+  redact: {
+    result: String
+  },
+  verdict: Number,
+  watermark: {
+    result: String
+  }
+}, { _id: false });
+
+const dlp_info = new Schema({
   filename: String,
-  hits: {
-    ccn: {
-      display_name: String,
-      hits: [dlpInfo_Hits],
-      metadata_removal: {
-        result: {
-          type: String,
-          enum: ['removed', 'not removed', 'failed to remove']
-        }
+  result_template_hash: String,
+  verdict: Number,
+
+  anonymization: {
+    result: String
+  },
+  crop_embedded_images: {
+    result: String
+  },
+  detection_policy: {
+    result: String
+  },
+  document_identification:{
+    result: String
+  },
+  intentional_data_leak: {
+    result: String
+  },
+  metadata_removal: {
+    result: String
+  },
+  recursive_processing: {
+    result: String
+  },
+  redact: {
+    result: String
+  },
+  watermark: {
+    result: String
+  },
+
+  scan: {
+    result: String,
+    types: {
+      ai:    {
+        display_name: String,
+        result: String
       },
-      redact: {
-        result: {
-          type: String,
-          enum: ['redacted', 'not redacted', 'failed to redact']
-        }
-      },
-      verdict: {
-        type: Number,
-        enum: [0,1,2,3,4]
-      },
-      watermark: {
-        type: String,
-        enum: ['added', 'not added', 'failed to add']
+      regex: {
+        display_name: String,
+        result: String
       }
     }
+  },
+
+  errors: Schema.Types.Mixed,
+
+  hits: {
+    type: Map,
+    of: ruleSchema
   }
+
 }, { _id: false });
 
 const reportSchema = new Schema({
