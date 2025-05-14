@@ -28,7 +28,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
           {infoTooltip && <Info className="w-4 h-4 text-gray-400" />}
         </div>
         {/* Badge moved below the title */}
-        <div className="mt-2">
+        <div className="mt-4">
           <StatusBadge verdict={badgeText} />
         </div>
       </div>

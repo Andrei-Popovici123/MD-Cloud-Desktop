@@ -27,7 +27,7 @@ export const ScanResultsTable: React.FC<ScanResultsTableProps> = ({
           <StatusBadge verdict="No Threats Detected" />
 
           <div className="flex items-baseline space-x-1">
-            <span className="text-3xl font-extrabold text-white">
+            <span className="text-3xl font-semibold text-white">
               {cleanCount}
             </span>
             <span className="text-lg font-semibold text-white">
