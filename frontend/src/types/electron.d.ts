@@ -3,7 +3,7 @@ export {};
 declare global {
   interface Window {
     electronAPI?: {
-      onFileDropped: (callback: (filePath: string) => void) => void;
+      onFileToUpload: (callback: (filePath: string) => void) => void;
     };
   }
 }

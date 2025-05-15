@@ -12,10 +12,11 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname,'preload.js'),
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
     },
   });
-
+ 
+  
   mainWindow.loadURL('http://localhost:5173');
   
   mainWindow.webContents.openDevTools();
@@ -31,10 +32,21 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(()=>{
-  //checks if file has been picked up by the context menu
-  startDockerCompose();
-  createWindow();
+app.whenReady().then(/*async*/()=>{
+
+// Not  awaiting the Containers to sartup first, will be added in install script
+//  try{
+//   await startDockerCompose();
+//     createWindow();
+//  }
+//   catch{
+//     console.log('Failed to start Docker Containers', err);
+//     app.quit();
+//   }
+
+//checks if file has been picked up by the context menu
+
+createWindow();
   const args =process.argv;
 
   if(args.length>=2){
@@ -50,19 +62,19 @@ app.on('window-all-closed', () => {
 
 //docker start script
 
-const startDockerCompose = () => {
-  const composePath = path.join(__dirname, '../docker-compose.yml');
+// const startDockerCompose = () => {
+//   const composePath = path.join(__dirname, '../docker-compose.yml');
 
 
-  exec(`docker compose  up -d`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(` Docker Compose failed: ${error.message}`);
-      return;
-    }
-    if (stderr) console.warn(` Docker stderr: ${stderr}`);
-    console.log(` Docker stdout: ${stdout}`);
-  });
-};
+//   exec(`docker compose  up -d`, (error, stdout, stderr) => {
+//     if (error) {
+//       console.error(` Docker Compose failed: ${error.message}`);
+//       return;
+//     }
+//     if (stderr) console.warn(` Docker stderr: ${stderr}`);
+//     console.log(` Docker stdout: ${stdout}`);
+//   });
+// };
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {

@@ -50,13 +50,13 @@ const FileUploader: React.FC = () => {
 useEffect(() => {
   // Only runs in Electron — avoid crashing in browser
   if (window.electronAPI) {
-    window.electronAPI.onFileDropped(async (filePath: string) => {
+    window.electronAPI.onFileToUpload(async (filePath: string) => {
       try {
         // Convert file path to file data using Electron APIs
         const fileName = filePath.split(/[/\\]/).pop(); // Extract filename
         const response = await fetch(`file://${filePath}`);
         const blob = await response.blob();
-        const file = new File([blob], fileName || 'dropped-file', { type: blob.type });
+        const file = new File([blob], fileName || 'Uploaded-file', { type: blob.type });
 
         validateAndUpload(file);
       } catch (err) {
