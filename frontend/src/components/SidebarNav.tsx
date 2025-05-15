@@ -62,12 +62,12 @@ export const SidebarNav: React.FC = () => {
   };
 
   return (
-    <nav className="sticky top-4 w-64 md:w-56 sm:w-48 xs:w-40 flex flex-col pt-8 pb-4 space-y-6 max-h-screen overflow-y-auto">
+    <nav className="sticky top-4 w-64 md:w-56 sm:w-48 xs:w-40 flex flex-col pt-8 pb-4 space-y-6 max-h-screen overflow-y-auto ">
       {items.map((item) => (
         <div
           key={item.id}
           onClick={() => handleClick(item.targetId)}
-          className="cursor-pointer"
+          className="cursor-pointer px-2"
         >
           <SidebarItem
             icon={item.icon}
