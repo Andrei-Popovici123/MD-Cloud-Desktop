@@ -35,7 +35,7 @@ const FileUploader: React.FC = () => {
             clearInterval(interval);
             setShowModal(false);
             // redirect to Proactive DLP page
-            navigate("/proactive-dlp");
+            navigate(`/proactive-dlp/${dataId}`);
           }
         } catch (error) {
           console.error("Error polling status:", error);
