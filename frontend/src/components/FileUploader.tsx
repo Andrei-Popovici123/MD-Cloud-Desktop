@@ -47,6 +47,26 @@ const FileUploader: React.FC = () => {
     };
   }, [dataId]);
 
+useEffect(() => {
+  // Only runs in Electron — avoid crashing in browser
+  if (window.electronAPI) {
+    window.electronAPI.onFileToUpload(async (filePath: string) => {
+      try {
+        // Convert file path to file data using Electron APIs
+        const fileName = filePath.split(/[/\\]/).pop(); // Extract filename
+        const response = await fetch(`file://${filePath}`);
+        const blob = await response.blob();
+        const file = new File([blob], fileName || 'Uploaded-file', { type: blob.type });
+
+        validateAndUpload(file);
+      } catch (err) {
+        console.error("Error loading file:", err);
+        setUploadStatus("Failed to load file from desktop.");
+      }
+    });
+  }
+}, []);
+
   // Handle file selection or drop
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
