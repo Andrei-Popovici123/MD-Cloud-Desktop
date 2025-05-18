@@ -56,7 +56,7 @@ export const ProactiveDLPPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-black min-h-screen grid grid-cols-1 md:grid-cols-[240px_1fr]">
+    <div className="bg-black min-h-screen grid grid-cols-1 md:grid-cols-[240px_1fr] px-6">
       <SidebarNav />
 
       <main className="p-6 overflow-auto space-y-8">
