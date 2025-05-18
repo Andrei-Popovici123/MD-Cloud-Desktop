@@ -80,7 +80,7 @@ export const ProactiveDLPPage: React.FC = () => {
 
         {/* Deep CDR Section */}
         <section>
-          <DeepCDRCard />
+          <DeepCDRCard dataId={dataId} />
         </section>
       </main>
     </div>

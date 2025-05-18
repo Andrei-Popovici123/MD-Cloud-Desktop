@@ -1,181 +1,151 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { SectionCard } from "./SectionCard";
-import { Info, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import illustration from "../assets/deepcdr-illustration.png";
+import { fetchDeepCdr } from "../services/api";
 
-const data = [
-  { object: "Custom XML", action: "Not Present" },
-  { object: "External Image", action: "Not Present" },
-  { object: "Hyperlink", action: "Not Present" },
-  { object: "Image", action: "Not Present" },
-];
+interface CdrRow {
+  object: string;
+  action: string;
+}
 
-export const DeepCDRCard: React.FC = () => {
+interface DeepCdrResponse {
+  sanitized: {
+    result: string;
+    file_path: string;
+    progress_percentage: number;
+  };
+  process_info: any;
+}
+
+interface DeepCdrProps {
+  dataId?: string;
+}
+
+export const DeepCDRCard: React.FC<DeepCdrProps> = ({ dataId }) => {
+  const [rows, setRows] = useState<CdrRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [downloadLink, setDownloadLink] = useState<string>("");
+  const [progress, setProgress] = useState<number>(0);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    setRows([]);
+    setDownloadLink("");
+    setProgress(0);
+
+    if (!dataId) {
+      setError("Data ID is unavailable. Awaiting upload completion.");
+      setLoading(false);
+      return;
+    }
+
+    fetchDeepCdr(dataId)
+      .then((response) => {
+        const { sanitized, process_info }: DeepCdrResponse = response.data;
+        setProgress(sanitized.progress_percentage);
+        setDownloadLink(sanitized.file_path);
+
+        const details =
+          process_info.post_processing?.sanitization_details?.details;
+        if (Array.isArray(details) && details.length > 0) {
+          setRows(
+            details.map((d: any) => ({
+              object: d.object_name || "Unknown Object",
+              action: d.action || "Processed",
+            }))
+          );
+        } else {
+          const defaultObjects = [
+            "Custom XML",
+            "External Image",
+            "Hyperlink",
+            "Image",
+          ];
+          setRows(
+            defaultObjects.map((obj) => ({
+              object: obj,
+              action: "Not Present",
+            }))
+          );
+        }
+      })
+      .catch((err: any) => {
+        console.error(err);
+        const message =
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to load sanitization data";
+        setError(message);
+      })
+      .finally(() => setLoading(false));
+  }, [dataId]);
+
+  const badgeText = loading
+    ? "Sanitization In Progress"
+    : error
+    ? "Error"
+    : progress === 100
+    ? "Sanitization Complete"
+    : "Sanitization Available";
+
   return (
     <SectionCard
       id="deep-cdr-card"
       title="Deep CDR™ Regeneration"
-      badgeText="Sanitization Available"
       infoTooltip="Files are sanitized by removing unsupported objects and regenerating safe formats."
-      className="relative overflow-hidden space-y-16 mt-5"
+      badgeText={badgeText}
+      className="relative overflow-hidden p-6 mt-6"
     >
-      {/* Top-right download button and expand icon */}
-      <div className="absolute top-6 right-6 flex items-center space-x-2">
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded">
-          Download Sanitized Version
-        </button>
-        <ExternalLink className="w-5 h-5 text-gray-400 hover:text-white" />
-      </div>
+      {!loading && !error && (
+        <div className="absolute top-6 right-6 flex items-center space-x-2">
+          <a href={downloadLink} target="_blank" rel="noopener noreferrer">
+            <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-300 hover:from-blue-600 hover:to-blue-400 text-white text-sm font-medium rounded-lg">
+              Download Sanitized Version
+            </button>
+          </a>
+          <ExternalLink className="w-5 h-5 text-gray-400 hover:text-white" />
+        </div>
+      )}
 
-      {/* Section heading */}
-      <h5 className="text-gray-300 text-sm mt-4 mb-3">
-        After Data Sanitization
-      </h5>
+      <h5 className="text-gray-300 text-sm mb-5">After Data Sanitization</h5>
 
-      {/* Table of objects and actions */}
-      <div className="overflow-auto relative z-0 pr-24 md:pr-32">
-        <table className="w-11/12 text-left text-gray-200 text-sm">
-          <thead>
-            <tr>
-              <th className="pb-2">Object</th>
-              <th className="pb-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row) => (
-              <tr key={row.object} className="border-t border-gray-700">
-                <td className="py-2">{row.object}</td>
-                <td className="py-2">
-                  <span className="inline-block px-2 py-0.5 text-xs text-white bg-gray-600 rounded">
-                    {row.action}
-                  </span>
-                </td>
+      <div className="flex items-center">
+        {/* Tabel rezultate */}
+        <div className="flex-1 overflow-auto pr-8">
+          <table className="w-full text-left text-gray-200 text-sm">
+            <thead>
+              <tr>
+                <th className="pb-2">Object</th>
+                <th className="pb-2">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.object} className="border-t border-gray-700">
+                  <td className="py-3">{row.object}</td>
+                  <td className="py-3">
+                    <span className="inline-block px-2 py-1 text-xs text-white bg-gray-600 rounded">
+                      {row.action}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      {/* Illustration on right */}
-      <div className="absolute bottom-4 right-8 opacity-20 z-10">
-        <img
-          src={illustration}
-          alt="Document sanitization illustration"
-          className="w-40 h-40 md:w-48 md:h-48"
-        />
+        {/* Ilustrație centrată vertical */}
+        <div className="flex-shrink-0 flex items-center justify-center">
+          <img
+            src={illustration}
+            alt="Document sanitization illustration"
+            className="w-48 h-48 opacity-20"
+          />
+        </div>
       </div>
     </SectionCard>
   );
 };
-
-//without mock data
-// import React, { useEffect, useState } from "react";
-// import { SectionCard } from "./SectionCard";
-// import { Info, ExternalLink } from "lucide-react";
-// import illustration from "../assets/deepcdr-illustration.png";
-// import { fetchDeepCdr } from "../services/api";
-
-// interface CdrRow {
-//   object: string;
-//   action: string;
-// }
-
-// interface DeepCdrProps {
-//   dataId: string;
-// }
-
-// export const DeepCDRCard: React.FC<DeepCdrProps> = ({ dataId }) => {
-//   //
-//   const [rows, setRows] = useState<CdrRow[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [downloadLink, setDownloadLink] = useState<string>("");
-
-//   useEffect(() => {
-//     setLoading(true);
-//     fetchDeepCdr(dataId)
-//       .then(({ data }) => {
-//         // link to the regenerated file
-//         setDownloadLink(data.sanitized.file_path);
-
-//         // get the sanitization details
-//         const details = data.process_info.sanitization_details?.details;
-//         if (details) {
-//           // map the details to rows
-//           const arr: CdrRow[] = Array.isArray(details)
-//             ? details.map((d: any) => ({
-//                 object: d.object_name,
-//                 action: d.action,
-//               }))
-//             : Object.values(details).map((d: any) => ({
-//                 object: d.object_name,
-//                 action: d.action,
-//               }));
-//           setRows(arr);
-//         } else {
-//           //  if no details, set a default message
-//           setRows([
-//             { object: "No unsupported objects", action: "Not Present" },
-//           ]);
-//         }
-//       })
-//       .catch((err) => setError(err.message))
-//       .finally(() => setLoading(false));
-//   }, [dataId]);
-
-//   if (loading) return <div>Loading Deep CDR…</div>;
-//   if (error) return <div className="text-red-500">Error: {error}</div>;
-
-//   return (
-//     <SectionCard
-//       id="deep-cdr-card"
-//       title="Deep CDR™ Regeneration"
-//       badgeText="Sanitization Available"
-//       infoTooltip="Files are sanitized by removing unsupported objects and regenerating safe formats."
-//       className="relative overflow-hidden"
-//     >
-//       {/* Download button */}
-//       <div className="absolute top-6 right-6 flex items-center space-x-2">
-//         <a href={downloadLink} target="_blank" rel="noopener noreferrer">
-//           <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded">
-//             Download Sanitized Version
-//           </button>
-//         </a>
-//         <ExternalLink className="w-5 h-5 text-gray-400 hover:text-white" />
-//       </div>
-
-//       <h5 className="text-gray-300 text-sm mb-3">After Data Sanitization</h5>
-
-//       <div className="overflow-auto relative z-0">
-//         <table className="w-full text-left text-gray-200 text-sm">
-//           <thead>
-//             <tr>
-//               <th className="pb-2">Object</th>
-//               <th className="pb-2">Action</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {rows.map((row) => (
-//               <tr key={row.object} className="border-t border-gray-700">
-//                 <td className="py-2">{row.object}</td>
-//                 <td className="py-2">
-//                   <span className="inline-block px-2 py-0.5 text-xs text-white bg-gray-600 rounded">
-//                     {row.action || "Not Present"}
-//                   </span>
-//                 </td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-//       </div>
-
-//       <div className="absolute bottom-4 right-8 opacity-20 z-10">
-//         <img
-//           src={illustration}
-//           alt="Document sanitization illustration"
-//           className="w-40 h-40 md:w-48 md:h-48"
-//         />
-//       </div>
-//     </SectionCard>
-//   );
-// };
