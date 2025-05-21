@@ -9,23 +9,7 @@ if (!fs.existsSync(uploadFolder)) {
   fs.mkdirSync(uploadFolder);
 }
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadFolder);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-
-    const hash = crypto
-      .createHash("sha256")
-      .update(
-        file.originalname + Date.now().toString() + crypto.randomBytes(16)
-      )
-      .digest("hex");
-
-    cb(null, `${hash}${ext}`);
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,

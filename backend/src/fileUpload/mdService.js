@@ -21,6 +21,23 @@ async function postFile(filePath) {
   return resp.data.data_id;
 }
 
+async function postFileStream(stream, filename) {
+  const form = new FormData();
+  form.append("file", stream, { filename });
+  const resp = await axios.post(
+    `${base_url}/file`,
+    //`${base_url_after_8}/file`,
+    form,
+    { headers: {
+        apikey: apikey,
+        //apikey: apikey_after_8,
+        rule: "unarchive,sanitize,dlp",
+        filename: filename
+      }}
+  );
+  return resp.data.data_id;
+}
+
 async function getReport(dataId) {
   const resp = await axios.get(`${base_url}/file/${dataId}`, {
     headers: { apikey: apikey },
@@ -28,4 +45,4 @@ async function getReport(dataId) {
   return resp.data;
 }
 
-module.exports = { postFile, getReport };
+module.exports = { postFile, postFileStream, getReport };
