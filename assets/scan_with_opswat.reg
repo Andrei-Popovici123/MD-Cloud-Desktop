@@ -1,0 +1,11 @@
+Windows Registry Editor Version 5.00
+
+; Adds a context menu entry for all file types (*)
+[HKEY_CLASSES_ROOT\*\shell\MD-CLOUD-DESKTOP]
+@="Scan with OPSWAT"
+"Icon"="" ;path to Icon
+
+; Executes app with the selected file path
+[HKEY_CLASSES_ROOT\*\shell\MD-CLOUD-DESKTOP\command]
+@="\"C:\\Program Files\\MD-CLOUD-DESKTOP\\MD-CLOUD-DESKTOP.exe\" \"%1\"" 
+; we need the path tho the app

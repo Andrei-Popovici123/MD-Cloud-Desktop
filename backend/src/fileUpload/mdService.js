@@ -3,6 +3,7 @@ const axios = require("axios");
 const FormData = require("form-data");
 const path = require("path");
 
+// const base_url = "https://api-qa.metadefender.com/v4"; // This is the test URL for the MetaDefender API
 const base_url = "https://api.metadefender.com/v4";
 const apikey = process.env.OPSWAT_API_KEY;
 //console.log(">> OPSWAT_API_KEY is:", JSON.stringify(apikey));
