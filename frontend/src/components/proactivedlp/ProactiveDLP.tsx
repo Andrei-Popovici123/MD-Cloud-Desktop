@@ -15,7 +15,6 @@ import {
   ExternalLink as ExternalLinkIcon,
 } from "lucide-react";
 
-// Etichete implicite pentru UI
 const defaultLabels: Record<string, string> = {
   "credit-card": "Credit Card Number (CCN)",
   ssn: "Social Security Number (SSN)",
@@ -28,7 +27,6 @@ const defaultLabels: Record<string, string> = {
   "custom-regex": "Custom Regular Expressions (RegEx)",
 };
 
-// Mapare cheie API → id UI
 const apiKeyToUiId: Record<string, string> = {
   ccn: "credit-card",
   ssn: "ssn",
@@ -41,7 +39,6 @@ const apiKeyToUiId: Record<string, string> = {
   custom_regular_expressions: "custom-regex",
 };
 
-// Icon-uri pentru fiecare categorie
 const iconMap: Record<string, React.ReactNode> = {
   "credit-card": <CreditCard className="w-5 h-5 text-gray-300" />,
   ssn: <User className="w-5 h-5 text-gray-300" />,
@@ -58,28 +55,51 @@ export interface ProactiveDLPProps {
   dataId?: string;
 }
 
+function formatVerdict(v: unknown): {
+  text: string;
+  variant: "success" | "warning" | "danger";
+} {
+  if (typeof v === "string") {
+    switch (v) {
+      case "match_found":
+        return { text: "Issues Detected", variant: "danger" };
+      case "match_found_low":
+      case "minor_match":
+        return { text: "Minor Issues Detected", variant: "warning" };
+      case "no_match":
+      case "no_matched_data":
+      default:
+        return { text: "No Issues Detected", variant: "success" };
+    }
+  }
+
+  const n = typeof v === "number" ? v : 0;
+  if (n >= 2) return { text: "Issues Detected", variant: "danger" };
+  if (n === 1) return { text: "Minor Issues Detected", variant: "warning" };
+  return { text: "No Issues Detected", variant: "success" };
+}
+
 export const ProactiveDLP: React.FC<ProactiveDLPProps> = ({ dataId }) => {
   const [items, setItems] = useState<DLPItemCardProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [globalSev, setGlobalSev] = useState(0);
+  const [badgeText, setBadgeText] = useState<string>("No Issues Detected");
+  const [badgeVariant, setBadgeVariant] = useState<
+    "success" | "warning" | "danger"
+  >("success");
 
   useEffect(() => {
-    if (!dataId) {
-      setItems([]);
-      setGlobalSev(0);
-      return;
-    }
+    if (!dataId) return;
     setLoading(true);
     setError(null);
 
     axios
       .get<any>(`/file/${dataId}/dlp`)
       .then(({ data }) => {
-        // data.dlp_info.verdict holds global severity
         const verdict = data.dlp_info?.verdict;
-        const parsedGlobal = typeof verdict === "number" ? verdict : 0;
-        setGlobalSev(parsedGlobal);
+        const { text, variant } = formatVerdict(verdict);
+        setBadgeText(text);
+        setBadgeVariant(variant);
 
         const hits = data.dlp_info?.hits || {};
         const arr: DLPItemCardProps[] = Object.entries(defaultLabels).map(
@@ -89,61 +109,42 @@ export const ProactiveDLP: React.FC<ProactiveDLPProps> = ({ dataId }) => {
             )?.[0];
             const info = apiKey ? hits[apiKey] : undefined;
             const count = info?.hits?.length ?? 0;
-            // if response has severity per hit, use max, otherwise use default 1 if count>0
-            const sev =
+            const severity =
               info?.hits?.reduce(
-                (m: number, h: any) => Math.max(m, h.severity || 1),
+                (max: number, h: any) => Math.max(max, h.severity || 1),
                 0
               ) ?? (count > 0 ? 1 : 0);
+
             return {
               id: uiId,
-              label: info?.display_name ?? label,
+              label,
               icon: iconMap[uiId],
               count,
-              severity: sev,
+              severity,
             };
           }
         );
         setItems(arr);
       })
       .catch((err) => {
-        console.error(err);
+        console.error(
+          "DLP error:",
+          err.response?.status,
+          err.response?.data || err.message
+        );
         setError(err.message || "Eroare la încărcarea DLP");
       })
       .finally(() => setLoading(false));
   }, [dataId]);
 
-  // Decide textul pentru badge-ul principal
-  const badgeText = loading
-    ? "Loading..."
-    : error
-    ? "Error"
-    : globalSev >= 2
-    ? "Issues Detected"
-    : globalSev === 1
-    ? "Minor Issues Detected"
-    : "No Issues Detected";
-
   return (
     <SectionCard
       title="Proactive DLP"
       badgeText={badgeText}
+      badgeVariant={badgeVariant}
       infoTooltip="This section scans for sensitive data in your document"
     >
-      <div className="absolute top-6 right-6 flex items-center space-x-2">
-        <button
-          disabled={loading || !!error}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium rounded"
-        >
-          Download Redacted Version
-        </button>
-        <ExternalLinkIcon className="w-5 h-5 text-gray-400 hover:text-white" />
-      </div>
-
-      <div className="mt-4">
-        {!dataId && (
-          <div className="text-gray-400">Încarcă mai întâi un fișier.</div>
-        )}
+      <div>
         {loading && <div>Se încarcă DLP…</div>}
         {error && <div className="text-red-500">Eroare: {error}</div>}
         {!loading && !error && dataId && (

@@ -3,41 +3,37 @@ import React from "react";
 export interface DLPItemCardProps {
   id: string;
   label: string;
+  icon: React.ReactNode;
   count: number;
-  icon?: React.ReactNode;
-
-  severity?: number;
+  severity: number;
 }
 
 export const DLPItemCard: React.FC<DLPItemCardProps> = ({
   label,
-  count,
   icon,
-  severity = 0,
+  count,
+  severity,
 }) => {
-  // Mapping severitate → clasa de background & text
-  const badgeClass =
+  const countBg =
     severity >= 2
-      ? "bg-red-600 text-white"
+      ? "bg-red-600"
       : severity === 1
-      ? "bg-yellow-600 text-white"
-      : "bg-gray-600 text-gray-200";
+      ? "bg-yellow-500"
+      : "bg-gray-700";
 
   return (
-    <div
-      className="
-        bg-gray-700 rounded-md p-4
-        flex items-center justify-between
-        hover:bg-gray-600 transition
-      "
-    >
+    <div className="relative bg-gray-700 rounded-lg p-4">
       <div className="flex items-center space-x-2">
         {icon}
-        <span className="text-white text-sm">{label}</span>
+        <span className="text-white">{label}</span>
       </div>
-      <span className={`px-2 py-1 rounded ${badgeClass} font-medium`}>
+      <span
+        className={`${countBg} text-white text-sm font-bold px-2 py-1 rounded absolute top-2 right-2`}
+      >
         {count}
       </span>
     </div>
   );
 };
+
+export default DLPItemCard;

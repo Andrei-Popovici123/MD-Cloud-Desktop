@@ -1,40 +1,51 @@
-// components/SectionCard.tsx
 import React from "react";
-import { StatusBadge } from "./StatusBadge";
-import { Info } from "lucide-react";
 
-interface SectionCardProps {
-  id?: string;
+export interface SectionCardProps {
   title: string;
   badgeText: string;
+  badgeVariant?: "success" | "warning" | "danger";
   infoTooltip?: string;
-  className?: string;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export const SectionCard: React.FC<SectionCardProps> = ({
   title,
   badgeText,
+  badgeVariant = "success",
   infoTooltip,
-  className = "",
   children,
 }) => {
+  // alege clasa de fundal pe baza variantei
+  const badgeBg =
+    badgeVariant === "danger"
+      ? "bg-red-600"
+      : badgeVariant === "warning"
+      ? "bg-yellow-500"
+      : "bg-green-600";
+
   return (
-    <div className={`bg-gray-800 rounded-md p-6 ${className}`}>
-      {/* Header */}
-      <div className="mb-2">
-        <div className="flex items-center space-x-2">
-          <h4 className="text-lg font-semibold text-white">{title}</h4>
-          {infoTooltip && <Info className="w-4 h-4 text-gray-400" />}
-        </div>
-        {/* Badge moved below the title */}
-        <div className="mt-4">
-          <StatusBadge verdict={badgeText} />
-        </div>
+    <div className="bg-gray-800 rounded-lg p-6">
+      {/* Titlul și tooltip */}
+      <div className="flex items-center space-x-2 mb-2">
+        <h2 className="text-white text-xl font-bold">{title}</h2>
+        {infoTooltip && (
+          <span className="text-gray-400 cursor-help" title={infoTooltip}>
+            ⓘ
+          </span>
+        )}
       </div>
 
-      {/* Content */}
-      {children}
+      {/* Badge sub titlu */}
+      <div className="mb-4">
+        <span className={`${badgeBg} text-white text-sm px-2 py-1 rounded`}>
+          {badgeText}
+        </span>
+      </div>
+
+      {/* Conținutul secțiunii */}
+      <div>{children}</div>
     </div>
   );
 };
+
+export default SectionCard;
