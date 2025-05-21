@@ -4,8 +4,8 @@ const FormData = require("form-data");
 const path = require("path");
 
 const base_url = "https://api.metadefender.com/v4";
-//const apikey = process.env.OPSWAT_API_KEY;
-console.log(">> OPSWAT_API_KEY is:", JSON.stringify(apikey));
+const apikey = process.env.OPSWAT_API_KEY;
+//console.log(">> OPSWAT_API_KEY is:", JSON.stringify(apikey));
 
 async function postFile(filePath) {
   const form = new FormData();
