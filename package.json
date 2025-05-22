@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Your Electron Desktop App",
   "main": "electron/main.js",
+  "author": {
+    "name": "Alex, Miruna, Andrei",
+    "email": "testemail@gmail.com"
+  },
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
