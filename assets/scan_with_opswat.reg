@@ -1,11 +1,17 @@
 Windows Registry Editor Version 5.00
 
-; Adds a context menu entry for all file types (*)
-[HKEY_CLASSES_ROOT\*\shell\MD-CLOUD-DESKTOP]
+; Context menu for all files
+[HKEY_CLASSES_ROOT\*\shell\MDCloudDesktop]
 @="Scan with OPSWAT"
-"Icon"="" ;path to Icon
+"Icon"="C:\\Program Files\\MD Cloud Desktop\\icon.ico"
 
-; Executes app with the selected file path
-[HKEY_CLASSES_ROOT\*\shell\MD-CLOUD-DESKTOP\command]
-@="\"C:\\Program Files\\MD-CLOUD-DESKTOP\\MD-CLOUD-DESKTOP.exe\" \"%1\"" 
-; we need the path tho the app
+[HKEY_CLASSES_ROOT\*\shell\MDCloudDesktop\command]
+@="\"C:\\Program Files\\MD Cloud Desktop\\run-middleware.bat\" \"%1\""
+
+; Context menu for all folders
+[HKEY_CLASSES_ROOT\Directory\shell\MDCloudDesktop]
+@="Scan with OPSWAT"
+"Icon"="C:\\Program Files\\MD Cloud Desktop\\icon.ico"
+
+[HKEY_CLASSES_ROOT\Directory\shell\MDCloudDesktop\command]
+@="\"C:\\Program Files\\MD Cloud Desktop\\run-middleware.bat\" \"%1\""
