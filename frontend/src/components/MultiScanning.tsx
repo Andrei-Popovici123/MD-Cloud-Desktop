@@ -1,33 +1,32 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { ScanResultsTable } from "./ScanResultsTable";
-
-export type Variant = "success" | "warning" | "danger";
-
-export interface ScanResult {
-  engineName: string;
-  verdict: string;
-  lastUpdate: string;
-  unsupported?: boolean;
-}
+import { StatusBadge } from "./StatusBadge";
+import { StatusBadgeScan } from "./StatusBadgeScan";
 
 export interface MultiScanningProps {
   dataId?: string;
+  onStatusChange: (
+    text: string,
+    variant: "success" | "warning" | "danger"
+  ) => void;
+}
 
-  onStatusChange: (text: string, variant: Variant) => void;
+interface EngineDetail {
+  engine: string;
+  scan_result_i: number;
+  lastUpdate: string;
 }
 
 const MultiScanning: React.FC<MultiScanningProps> = ({
   dataId,
   onStatusChange,
 }) => {
-  const [results, setResults] = useState<ScanResult[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [details, setDetails] = useState<EngineDetail[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!dataId) return;
-
     setLoading(true);
     setError(null);
 
@@ -36,18 +35,13 @@ const MultiScanning: React.FC<MultiScanningProps> = ({
         `/file/${dataId}/multiscan`
       )
       .then(({ data }) => {
-        const details = data.scan_results.scan_details;
-        const arr: ScanResult[] = Object.entries(details).map(
-          ([engineName, d]) => ({
-            engineName,
-            verdict: d.threat_found || "No Threat Detected",
-            lastUpdate: d.def_time?.$date
-              ? new Date(d.def_time.$date).toLocaleString()
-              : new Date(d.def_time).toLocaleString(),
-            unsupported: d.scan_result_i !== 0,
-          })
-        );
-        setResults(arr);
+        const entries = data.scan_results.scan_details;
+        const arr = Object.entries(entries).map(([engine, d]) => ({
+          engine,
+          scan_result_i: d.scan_result_i,
+          lastUpdate: d.def_time ? new Date(d.def_time).toLocaleString() : "",
+        }));
+        setDetails(arr);
       })
       .catch((err) => {
         console.error(err);
@@ -56,19 +50,21 @@ const MultiScanning: React.FC<MultiScanningProps> = ({
       .finally(() => setLoading(false));
   }, [dataId]);
 
-  const anyThreats = results.some((r) => r.verdict !== "No Threat Detected");
+  const detectedCount = details.filter((d) => d.scan_result_i === 1).length;
+  const totalEngines = details.length;
+
   const badgeText = loading
     ? "Scanning..."
     : error
     ? "Error Fetching Scan"
-    : anyThreats
+    : detectedCount > 0
     ? "Threats Detected"
-    : "No Threats Detected";
-  const badgeVariant: Variant = loading
+    : "No Threats Found";
+  const badgeVariant: "success" | "warning" | "danger" = loading
     ? "warning"
     : error
     ? "danger"
-    : anyThreats
+    : detectedCount > 0
     ? "danger"
     : "success";
 
@@ -76,27 +72,55 @@ const MultiScanning: React.FC<MultiScanningProps> = ({
     onStatusChange(badgeText, badgeVariant);
   }, [badgeText, badgeVariant, onStatusChange]);
 
-  const renderBody = () => {
-    if (!dataId) {
-      return (
-        <div className="text-gray-400">
-          Niciun fișier selectat pentru scanare.
+  return (
+    <div className="bg-gray-800 p-6 rounded-lg">
+      {/* Header: title + badge inline, divider, count */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <h2 className="text-white text-xl font-semibold">Multiscanning</h2>
+          <StatusBadgeScan
+            verdictCode={detectedCount > 0 ? 1 : 0}
+            unsupported={false}
+          />
         </div>
-      );
-    }
-    if (loading) {
-      return <div>Se încarcă rezultatele scanării…</div>;
-    }
-    if (error) {
-      return <div className="text-red-500">Eroare: {error}</div>;
-    }
-    if (results.length === 0) {
-      return <div className="text-gray-400">Nicio scanare disponibilă.</div>;
-    }
-    return <ScanResultsTable results={results} />;
-  };
+        <div className="flex items-baseline space-x-2 border-l border-gray-600 pl-4">
+          <span className="text-5xl font-bold text-white">{detectedCount}</span>
+          <span className="text-sm text-gray-400">/{totalEngines} ENGINES</span>
+        </div>
+      </div>
 
-  return <div className="space-y-4">{renderBody()}</div>;
+      <hr className="border-gray-600 mb-4" />
+
+      {loading && <div>Se încarcă rezultatele scanării…</div>}
+      {error && <div className="text-red-500">Eroare: {error}</div>}
+
+      {!loading && !error && (
+        <table className="min-w-full table-auto text-left text-white">
+          <thead>
+            <tr>
+              <th className="px-4 py-2">Engine Name</th>
+              <th className="px-4 py-2">Verdict</th>
+              <th className="px-4 py-2">Last engine update</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-700">
+            {details.map((d) => (
+              <tr key={d.engine}>
+                <td className="px-4 py-2">{d.engine}</td>
+                <td className="px-4 py-2">
+                  <StatusBadgeScan
+                    verdictCode={d.scan_result_i}
+                    unsupported={false}
+                  />
+                </td>
+                <td className="px-4 py-2">{d.lastUpdate}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 };
 
 export default MultiScanning;

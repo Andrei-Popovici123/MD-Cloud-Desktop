@@ -1,68 +1,49 @@
 import React from "react";
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadgeScan } from "./StatusBadgeScan";
 
-export interface ScanResult {
-  engineName: string;
-  verdict: string;
-  lastUpdate: string;
-  unsupported?: boolean;
+export interface ScanDetail {
+  engine: string;
+  scan_result_i: number;
+  // Other fields like scan_time, def_time, etc.
 }
 
-interface ScanResultsTableProps {
-  results: ScanResult[];
+export interface ScanResultsTableProps {
+  data: ScanDetail[];
 }
 
-export const ScanResultsTable: React.FC<ScanResultsTableProps> = ({
-  results,
-}) => {
-  const cleanCount = results.filter((r) => !r.unsupported).length;
-  const total = results.length;
-
+export const ScanResultsTable: React.FC<ScanResultsTableProps> = ({ data }) => {
   return (
-    <div className="bg-gray-800 rounded-md p-6 overflow-auto">
-      <div className="flex flex-col mb-4">
-        <h3 className="text-xl font-semibold text-white">Multiscanning</h3>
-
-        <div className="flex items-center space-x-6 mt-2">
-          <StatusBadge verdict="No Threats Detected" />
-
-          <div className="flex items-baseline space-x-1">
-            <span className="text-3xl font-semibold text-white">
-              {cleanCount}
-            </span>
-            <span className="text-lg font-semibold text-white">
-              /{total} ENGINES
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <hr className="border-gray-700 mb-4" />
-
-      {/* Tabel */}
-      <table className="w-full text-left table-auto">
-        <thead>
-          <tr className="text-gray-400 border-b border-gray-600">
-            <th className="py-2 px-4">Engine Name</th>
-            <th className="py-2 px-4">Verdict</th>
-            <th className="py-2 px-4">Last engine update</th>
-          </tr>
-        </thead>
-        <tbody>
-          {results.map((r) => (
-            <tr
-              key={r.engineName}
-              className="border-b border-gray-700 hover:bg-gray-700"
-            >
-              <td className="py-2 px-4 text-white">{r.engineName}</td>
-              <td className="py-2 px-4">
-                <StatusBadge verdict={r.verdict} unsupported={r.unsupported} />
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead>
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Engine
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Verdict
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {data.map((detail) => {
+          // unsupported if code is 18 or 23
+          const isUnsupported =
+            detail.scan_result_i === 18 || detail.scan_result_i === 23;
+          return (
+            <tr key={detail.engine}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {detail.engine}
               </td>
-              <td className="py-2 px-4 text-gray-400">{r.lastUpdate}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <StatusBadgeScan
+                  verdictCode={detail.scan_result_i}
+                  unsupported={isUnsupported}
+                />
+              </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          );
+        })}
+      </tbody>
+    </table>
   );
 };
