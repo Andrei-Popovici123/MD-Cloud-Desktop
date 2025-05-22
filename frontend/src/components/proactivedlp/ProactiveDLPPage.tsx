@@ -1,88 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { SidebarNav } from "../SidebarNav";
-import { ProactiveDLP } from "./ProactiveDLP";
-import { DLPItemCardProps } from "./DLPItemCard";
+import React, { useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+
+import SidebarNav from "../SidebarNav";
 import MultiScanning from "../MultiScanning";
 import { DeepCDRCard } from "../DeepCDRCard";
+import ProactiveDLP from "./ProactiveDLP";
 
-export const ProactiveDLPPage: React.FC = () => {
-  // Extrage ID-ul fișierului din URL (dacă există)
+export type Variant = "success" | "warning" | "danger";
+
+export interface SectionStatus {
+  id: string;
+  title: string;
+  badgeText: string;
+  badgeVariant: Variant;
+}
+
+const ProactiveDLPPage: React.FC = () => {
   const { dataId: paramDataId } = useParams<{ dataId: string }>();
-  const [dataId, setDataId] = useState<string | undefined>(paramDataId);
-  const navigate = useNavigate();
-  const [items, setItems] = useState<DLPItemCardProps[]>([]);
+  const [dataId] = useState<string | undefined>(paramDataId);
 
-  // Handler pentru upload de fișier
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const form = new FormData();
-    form.append("file", file);
+  const [sections, setSections] = useState<SectionStatus[]>([
+    {
+      id: "multiscanning",
+      title: "Multiscanning",
+      badgeText: "No Threats Detected",
+      badgeVariant: "success",
+    },
+    {
+      id: "adaptive-sandbox",
+      title: "Adaptive Sandbox",
+      badgeText: "No Threats Detected",
+      badgeVariant: "success",
+    },
+    {
+      id: "deep-cdr",
+      title: "Deep CDR™",
+      badgeText: "Sanitization Available",
+      badgeVariant: "success",
+    },
+    {
+      id: "proactive-dlp",
+      title: "Proactive DLP",
+      badgeText: "No Issues Detected",
+      badgeVariant: "success",
+    },
+    {
+      id: "vulnerabilities",
+      title: "Vulnerabilities",
+      badgeText: "No Vulnerabilities Found",
+      badgeVariant: "success",
+    },
+  ]);
 
-    try {
-      const response = await axios.post<{ dataId: string }>("/upload", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const id = response.data.dataId;
-      setDataId(id);
-      // Navighează la ruta cu parametru pentru a păstra în URL
-      navigate(`/proactive-dlp/${id}`);
-    } catch (err) {
-      console.error("Upload error", err);
-    }
-  };
+  const updateSection = useCallback(
+    (id: string, badgeText: string, badgeVariant: Variant) => {
+      setSections((all) =>
+        all.map((sec) =>
+          sec.id === id ? { ...sec, badgeText, badgeVariant } : sec
+        )
+      );
+    },
+    []
+  );
 
-  useEffect(() => {
-    // Fetch Proactive DLP items (mock sau real)
-    setTimeout(() => {
-      setItems([
-        {
-          id: "credit-card",
-          label: "Credit Card Number",
-          count: 3,
-          icon: undefined,
-        },
-        {
-          id: "ssn",
-          label: "Social Security Number",
-          count: 0,
-          icon: undefined,
-        },
-        { id: "govt-ids", label: "Government IDs", count: 1, icon: undefined },
-      ]);
-    }, 500);
-  }, []);
+  const handleMultiscan = useCallback(
+    (text: string, variant: Variant) =>
+      updateSection("multiscanning", text, variant),
+    [updateSection]
+  );
+
+  const handleDeepCdr = useCallback(
+    (text: string, variant: Variant) =>
+      updateSection("deep-cdr", text, variant),
+    [updateSection]
+  );
+
+  const handleProactiveDLP = useCallback(
+    (text: string, variant: Variant) =>
+      updateSection("proactive-dlp", text, variant),
+    [updateSection]
+  );
 
   return (
-    <div className="bg-black min-h-screen grid grid-cols-1 md:grid-cols-[240px_1fr] px-6">
-      <SidebarNav />
+    <div className="bg-gray-900 grid grid-cols-[240px_1fr] gap-8">
+      <SidebarNav sections={sections} />
 
-      <main className="p-6 overflow-auto space-y-8">
-        {/* Upload Component */}
-        <div>
-          <label className="text-white mb-2 block">
-            Încarcă un fișier pentru scanare:
-          </label>
-          <input type="file" accept="*" onChange={handleUpload} />
-        </div>
+      <main className="p-6 space-y-12">
+        <MultiScanning dataId={dataId} onStatusChange={handleMultiscan} />
 
-        {/* Multi-Scanning Section */}
-        <div>
-          <MultiScanning dataId={dataId} />
-        </div>
+        <DeepCDRCard dataId={dataId} onStatusChange={handleDeepCdr} />
 
-        {/* Proactive DLP Section */}
-        <div>
-          <ProactiveDLP dataId={dataId} />
-        </div>
-
-        {/* Deep CDR Section */}
-        <section>
-          <DeepCDRCard dataId={dataId} />
-        </section>
+        <ProactiveDLP dataId={dataId} onStatusChange={handleProactiveDLP} />
       </main>
     </div>
   );
 };
+
+export default ProactiveDLPPage;

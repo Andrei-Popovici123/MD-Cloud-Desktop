@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { SectionCard } from "../SectionCard";
 import { DLPItemCard, DLPItemCardProps } from "./DLPItemCard";
@@ -14,6 +14,8 @@ import {
   Code,
   ExternalLink as ExternalLinkIcon,
 } from "lucide-react";
+
+export type Variant = "success" | "warning" | "danger";
 
 const defaultLabels: Record<string, string> = {
   "credit-card": "Credit Card Number (CCN)",
@@ -52,13 +54,13 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export interface ProactiveDLPProps {
+  /** ID-ul fișierului pentru analiza DLP */
   dataId?: string;
+  /** Callback pentru actualizarea badge-ului în părinte */
+  onStatusChange: (text: string, variant: Variant) => void;
 }
 
-function formatVerdict(v: unknown): {
-  text: string;
-  variant: "success" | "warning" | "danger";
-} {
+function formatVerdict(v: unknown): { text: string; variant: Variant } {
   if (typeof v === "string") {
     switch (v) {
       case "match_found":
@@ -72,22 +74,29 @@ function formatVerdict(v: unknown): {
         return { text: "No Issues Detected", variant: "success" };
     }
   }
-
   const n = typeof v === "number" ? v : 0;
   if (n >= 2) return { text: "Issues Detected", variant: "danger" };
   if (n === 1) return { text: "Minor Issues Detected", variant: "warning" };
   return { text: "No Issues Detected", variant: "success" };
 }
 
-export const ProactiveDLP: React.FC<ProactiveDLPProps> = ({ dataId }) => {
+const ProactiveDLP: React.FC<ProactiveDLPProps> = ({
+  dataId,
+  onStatusChange,
+}) => {
   const [items, setItems] = useState<DLPItemCardProps[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [badgeText, setBadgeText] = useState<string>("No Issues Detected");
-  const [badgeVariant, setBadgeVariant] = useState<
-    "success" | "warning" | "danger"
-  >("success");
+  const [badgeText, setBadgeText] = useState<string>("Loading...");
+  const [badgeVariant, setBadgeVariant] = useState<Variant>("warning");
 
+  // Ref pentru callback stabil
+  const callbackRef = useRef(onStatusChange);
+  useEffect(() => {
+    callbackRef.current = onStatusChange;
+  }, [onStatusChange]);
+
+  // Fetch DLP doar la schimbarea dataId
   useEffect(() => {
     if (!dataId) return;
     setLoading(true);
@@ -100,6 +109,7 @@ export const ProactiveDLP: React.FC<ProactiveDLPProps> = ({ dataId }) => {
         const { text, variant } = formatVerdict(verdict);
         setBadgeText(text);
         setBadgeVariant(variant);
+        callbackRef.current(text, variant);
 
         const hits = data.dlp_info?.hits || {};
         const arr: DLPItemCardProps[] = Object.entries(defaultLabels).map(
@@ -114,39 +124,34 @@ export const ProactiveDLP: React.FC<ProactiveDLPProps> = ({ dataId }) => {
                 (max: number, h: any) => Math.max(max, h.severity || 1),
                 0
               ) ?? (count > 0 ? 1 : 0);
-
-            return {
-              id: uiId,
-              label,
-              icon: iconMap[uiId],
-              count,
-              severity,
-            };
+            return { id: uiId, label, icon: iconMap[uiId], count, severity };
           }
         );
         setItems(arr);
       })
       .catch((err) => {
-        console.error(
-          "DLP error:",
-          err.response?.status,
-          err.response?.data || err.message
-        );
-        setError(err.message || "Eroare la încărcarea DLP");
+        console.error("DLP error:", err);
+        const msg =
+          err.response?.data?.message || err.message || "Error loading DLP";
+        setError(msg);
+        setBadgeText(msg);
+        setBadgeVariant("danger");
+        callbackRef.current(msg, "danger");
       })
       .finally(() => setLoading(false));
   }, [dataId]);
 
   return (
     <SectionCard
+      id="proactive-dlp-card"
       title="Proactive DLP"
       badgeText={badgeText}
       badgeVariant={badgeVariant}
       infoTooltip="This section scans for sensitive data in your document"
     >
       <div>
-        {loading && <div>Se încarcă DLP…</div>}
-        {error && <div className="text-red-500">Eroare: {error}</div>}
+        {loading && <div>Loading DLP results…</div>}
+        {error && <div className="text-red-500">Error: {error}</div>}
         {!loading && !error && dataId && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map((item) => (

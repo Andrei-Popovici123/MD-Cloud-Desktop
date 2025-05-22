@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { ScanResultsTable } from "./ScanResultsTable";
 
+export type Variant = "success" | "warning" | "danger";
+
 export interface ScanResult {
   engineName: string;
   verdict: string;
@@ -10,19 +12,21 @@ export interface ScanResult {
 }
 
 export interface MultiScanningProps {
-  /** ID-ul fișierului încărcat pentru scanare */
   dataId?: string;
+
+  onStatusChange: (text: string, variant: Variant) => void;
 }
 
-const MultiScanning: React.FC<MultiScanningProps> = ({ dataId }) => {
+const MultiScanning: React.FC<MultiScanningProps> = ({
+  dataId,
+  onStatusChange,
+}) => {
   const [results, setResults] = useState<ScanResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!dataId) {
-      return; // fără dataId, nu facem fetch
-    }
+    if (!dataId) return;
 
     setLoading(true);
     setError(null);
@@ -52,6 +56,26 @@ const MultiScanning: React.FC<MultiScanningProps> = ({ dataId }) => {
       .finally(() => setLoading(false));
   }, [dataId]);
 
+  const anyThreats = results.some((r) => r.verdict !== "No Threat Detected");
+  const badgeText = loading
+    ? "Scanning..."
+    : error
+    ? "Error Fetching Scan"
+    : anyThreats
+    ? "Threats Detected"
+    : "No Threats Detected";
+  const badgeVariant: Variant = loading
+    ? "warning"
+    : error
+    ? "danger"
+    : anyThreats
+    ? "danger"
+    : "success";
+
+  useEffect(() => {
+    onStatusChange(badgeText, badgeVariant);
+  }, [badgeText, badgeVariant, onStatusChange]);
+
   const renderBody = () => {
     if (!dataId) {
       return (
@@ -69,43 +93,10 @@ const MultiScanning: React.FC<MultiScanningProps> = ({ dataId }) => {
     if (results.length === 0) {
       return <div className="text-gray-400">Nicio scanare disponibilă.</div>;
     }
-
     return <ScanResultsTable results={results} />;
   };
 
-  // Determinăm starea pentru header
-  const anyThreats = results.some((r) => r.verdict !== "No Threat Detected");
-  const supportedCount = results.filter((r) => !r.unsupported).length;
-  const totalEngines = results.length;
-
-  return (
-    <div
-      id="multiscanning-card"
-      className="bg-gray-800 rounded-lg p-4 md:p-6 space-y-3 md:space-y-4"
-    >
-      <div className="flex items-center justify-between">
-        <h3 className="text-white text-lg md:text-xl font-bold">
-          Multiscanning
-        </h3>
-        <div className="flex items-center space-x-4">
-          <span
-            className={`inline-block px-2 py-1 rounded text-xs sm:text-sm text-white ${
-              anyThreats ? "bg-red-600" : "bg-green-600"
-            }`}
-          >
-            {anyThreats ? "Threats Detected" : "No Threats Detected"}
-          </span>
-          {dataId && (
-            <span className="text-white font-bold text-sm">
-              {supportedCount}/{totalEngines} ENGINES
-            </span>
-          )}
-        </div>
-      </div>
-      <hr className="border-gray-700" />
-      {renderBody()}
-    </div>
-  );
+  return <div className="space-y-4">{renderBody()}</div>;
 };
 
 export default MultiScanning;

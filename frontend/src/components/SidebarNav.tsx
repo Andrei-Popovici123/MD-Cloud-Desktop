@@ -1,5 +1,4 @@
 import React from "react";
-import { SidebarItem } from "./SideBarItem";
 import {
   FaShieldVirus,
   FaCube,
@@ -8,75 +7,70 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 
-// Sidebar items with their scroll targets
-const items = [
-  {
-    id: "multiscanning",
-    icon: <FaShieldVirus size={24} className="text-gray-300" />,
-    title: "Multiscanning",
-    status: "No Threats Detected",
-    statusColor: "#008a00",
-    targetId: "multiscanning-card",
-  },
-  {
-    id: "adaptive-sandbox",
-    icon: <FaCube size={24} className="text-gray-300" />,
-    title: "Adaptive Sandbox",
-    status: "No Threats Detected",
-    statusColor: "#008a00",
-    // no target → no scroll
-  },
-  {
-    id: "deep-cdr",
-    icon: <FaClipboardList size={24} className="text-gray-300" />,
-    title: "Deep CDR™",
-    status: "Sanitization Available",
-    statusColor: "#008a00",
-    targetId: "deep-cdr-card",
-  },
-  {
-    id: "proactive-dlp",
-    icon: <FaFingerprint size={24} className="text-gray-300" />,
-    title: "Proactive DLP",
-    status: "No Issues Detected",
-    statusColor: "#008a00",
-    targetId: "proactive-dlp-card",
-  },
-  {
-    id: "vulnerabilities",
-    icon: <FaExclamationTriangle size={24} className="text-gray-300" />,
-    title: "Vulnerabilities",
-    status: "No Vulnerabilities Found",
-    statusColor: "#008a00",
-    // no target → no scroll
-  },
-];
+export interface Section {
+  id: string;
+  title: string;
+  badgeText: string;
+  badgeVariant: "success" | "warning" | "danger";
+}
 
-export const SidebarNav: React.FC = () => {
-  const handleClick = (targetId?: string) => {
-    if (!targetId) return;
+interface SidebarNavProps {
+  sections: Section[];
+}
+
+const iconsMap: Record<string, React.ReactNode> = {
+  multiscanning: <FaShieldVirus size={24} />,
+  "adaptive-sandbox": <FaCube size={24} />,
+  "deep-cdr": <FaClipboardList size={24} />,
+  "proactive-dlp": <FaFingerprint size={24} />,
+  vulnerabilities: <FaExclamationTriangle size={24} />,
+};
+
+const colorMap: Record<SidebarNavProps["sections"][0]["badgeVariant"], string> =
+  {
+    success: "#008a00",
+    warning: "#f59e0b",
+    danger: "#dc2626",
+  };
+
+const SidebarNav: React.FC<SidebarNavProps> = ({ sections }) => {
+  const handleClick = (targetId: string) => {
     const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <nav className="sticky top-4 w-64 md:w-56 sm:w-48 xs:w-40 flex flex-col  pt-8 pb-4 space-y-6 max-h-screen overflow-y-auto ">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          onClick={() => handleClick(item.targetId)}
-          className="cursor-pointer px-2"
-        >
-          <SidebarItem
-            icon={item.icon}
-            title={item.title}
-            status={item.status}
-            statusColor={item.statusColor}
-          />
-        </div>
-      ))}
+    <nav className="bg-gray-900 sticky top-4 h-[calc(100vh-1rem)] overflow-y-auto w-64 space-y-2 pt-28">
+      {sections.map((sec) => {
+        const statusColor = colorMap[sec.badgeVariant];
+        return (
+          <div
+            key={sec.id}
+            onClick={() => handleClick(`${sec.id}-card`)}
+            className="cursor-pointer"
+          >
+            <div
+              className="flex items-center bg-gray-800 hover:bg-gray-700 px-4 py-3 rounded-lg transition"
+              style={{ borderLeft: `4px solid ${statusColor}` }}
+            >
+              <div className="flex-shrink-0" style={{ color: statusColor }}>
+                {iconsMap[sec.id] || null}
+              </div>
+              <div className="ml-3">
+                <div className="text-gray-100 font-medium">{sec.title}</div>
+                <div
+                  className="mt-1 inline-block text-xs font-semibold text-white px-2 py-0.5 rounded"
+                  style={{ backgroundColor: statusColor }}
+                >
+                  {sec.badgeText}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </nav>
   );
 };
+
+export default SidebarNav;
