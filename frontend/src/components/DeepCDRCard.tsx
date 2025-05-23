@@ -9,8 +9,8 @@ export type Variant = "success" | "warning" | "danger";
 export interface DeepCDRCardProps {
   dataId?: string;
   /**
-   * Callback apelat când se schimbă statusul badge-ului
-   * @param text - textul badge-ului (ex. "Sanitization In Progress")
+   * Callback called when badge status changes
+   * @param text - badge text (e.g. "Sensitive Data Found")
    * @param variant - "success" | "warning" | "danger"
    */
   onStatusChange: (text: string, variant: Variant) => void;
@@ -26,8 +26,13 @@ interface DeepCdrResponse {
     result: string;
     file_path: string;
     progress_percentage: number;
+    reason?: string;
   };
-  process_info: any;
+  process_info: {
+    progress_percentage: number;
+    verdicts?: string[];
+    post_processing?: any;
+  };
 }
 
 export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
@@ -39,6 +44,9 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [downloadLink, setDownloadLink] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
+  const [hasSensitive, setHasSensitive] = useState<boolean>(false);
+  const [sanitizedResult, setSanitizedResult] = useState<string>("");
+  const [sanitizedReason, setSanitizedReason] = useState<string>("");
 
   useEffect(() => {
     setLoading(true);
@@ -46,6 +54,9 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
     setRows([]);
     setDownloadLink("");
     setProgress(0);
+    setHasSensitive(false);
+    setSanitizedResult("");
+    setSanitizedReason("");
 
     if (!dataId) {
       setError("Data ID is unavailable. Awaiting upload completion.");
@@ -56,8 +67,18 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
     fetchDeepCdr(dataId)
       .then((response) => {
         const { sanitized, process_info }: DeepCdrResponse = response.data;
-        const pct = sanitized.progress_percentage;
-        setProgress(pct);
+        // store sanitized result and reason
+        setSanitizedResult(sanitized.result);
+        setSanitizedReason(sanitized.reason || "");
+
+        const verdicts = process_info.verdicts || [];
+        // Determine if any sensitive data was found
+        const sensitiveFound =
+          verdicts.includes("Sensitive Data Found") ||
+          sanitized.reason === "Sensitive Data Found";
+        setHasSensitive(sensitiveFound);
+
+        setProgress(sanitized.progress_percentage);
         setDownloadLink(sanitized.file_path);
 
         const details =
@@ -95,10 +116,15 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
       .finally(() => setLoading(false));
   }, [dataId]);
 
+  // Badge logic: prioritize sanitized errors, then sensitive, then completion/availability
   const badgeText = loading
     ? "Sanitization In Progress"
     : error
     ? "Error"
+    : sanitizedResult === "Error"
+    ? sanitizedReason || "Error"
+    : hasSensitive
+    ? "Sensitive Data Found"
     : progress === 100
     ? "Sanitization Complete"
     : "Sanitization Available";
@@ -107,11 +133,21 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
     ? "warning"
     : error
     ? "danger"
-    : "success";
+    : sanitizedResult === "Error"
+    ? "danger"
+    : hasSensitive
+    ? "danger"
+    : progress === 100
+    ? "success"
+    : "warning";
 
   useEffect(() => {
     onStatusChange(badgeText, badgeVariant);
   }, [badgeText, badgeVariant, onStatusChange]);
+
+  // disable button if sanitized error or sensitive data found
+  const disableDownload =
+    loading || !!error || sanitizedResult === "Error" || hasSensitive;
 
   return (
     <SectionCard
@@ -123,12 +159,21 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
     >
       <div className="relative overflow-hidden">
         {!loading && !error && (
-          <div className="absolute top-6 right-6 flex items-center space-x-2">
-            <a href={downloadLink} target="_blank" rel="noopener noreferrer">
-              <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-300 hover:from-blue-600 hover:to-blue-400 text-white text-sm font-medium rounded-lg">
+          <div className="absolute top-0 right-6 flex items-center space-x-2">
+            {disableDownload ? (
+              <button
+                disabled
+                className="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg cursor-not-allowed"
+              >
                 Download Sanitized Version
               </button>
-            </a>
+            ) : (
+              <a href={downloadLink} target="_blank" rel="noopener noreferrer">
+                <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-300 hover:from-blue-600 hover:to-blue-400 text-white text-sm font-medium rounded-lg">
+                  Download Sanitized Version
+                </button>
+              </a>
+            )}
             <ExternalLink className="w-5 h-5 text-gray-400 hover:text-white" />
           </div>
         )}
@@ -136,7 +181,6 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
         <h5 className="text-gray-300 text-sm mb-5">After Data Sanitization</h5>
 
         <div className="flex items-center">
-          {/* Tabel rezultate */}
           <div className="flex-1 overflow-auto pr-8">
             <table className="w-full text-left text-gray-200 text-sm">
               <thead>
@@ -160,7 +204,6 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
             </table>
           </div>
 
-          {/* Ilustrație centrată vertical */}
           <div className="flex-shrink-0 flex items-center justify-center">
             <img
               src={illustration}

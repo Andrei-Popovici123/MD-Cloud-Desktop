@@ -11,7 +11,7 @@ export interface Section {
   id: string;
   title: string;
   badgeText: string;
-  badgeVariant: "success" | "warning" | "danger";
+  badgeVariant: "success" | "warning" | "danger" | "neutral";
 }
 
 interface SidebarNavProps {
@@ -26,12 +26,12 @@ const iconsMap: Record<string, React.ReactNode> = {
   vulnerabilities: <FaExclamationTriangle size={24} />,
 };
 
-const colorMap: Record<SidebarNavProps["sections"][0]["badgeVariant"], string> =
-  {
-    success: "#008a00",
-    warning: "#f59e0b",
-    danger: "#dc2626",
-  };
+const colorMap: Record<Section["badgeVariant"], string> = {
+  success: "#008a00",
+  warning: "#f59e0b",
+  danger: "#dc2626",
+  neutral: "#6b7280",
+};
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ sections }) => {
   const handleClick = (targetId: string) => {

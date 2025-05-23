@@ -15,7 +15,7 @@ import {
   ExternalLink as ExternalLinkIcon,
 } from "lucide-react";
 
-export type Variant = "success" | "warning" | "danger";
+export type Variant = "success" | "warning" | "danger" | "neutral";
 
 const defaultLabels: Record<string, string> = {
   "credit-card": "Credit Card Number (CCN)",
@@ -54,79 +54,103 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export interface ProactiveDLPProps {
-  /** ID-ul fișierului pentru analiza DLP */
   dataId?: string;
-  /** Callback pentru actualizarea badge-ului în părinte */
   onStatusChange: (text: string, variant: Variant) => void;
-}
-
-function formatVerdict(v: unknown): { text: string; variant: Variant } {
-  if (typeof v === "string") {
-    switch (v) {
-      case "match_found":
-        return { text: "Issues Detected", variant: "danger" };
-      case "match_found_low":
-      case "minor_match":
-        return { text: "Minor Issues Detected", variant: "warning" };
-      case "no_match":
-      case "no_matched_data":
-      default:
-        return { text: "No Issues Detected", variant: "success" };
-    }
-  }
-  const n = typeof v === "number" ? v : 0;
-  if (n >= 2) return { text: "Issues Detected", variant: "danger" };
-  if (n === 1) return { text: "Minor Issues Detected", variant: "warning" };
-  return { text: "No Issues Detected", variant: "success" };
 }
 
 const ProactiveDLP: React.FC<ProactiveDLPProps> = ({
   dataId,
   onStatusChange,
 }) => {
+  const [canRedact, setCanRedact] = useState<boolean>(false);
+  const [downloadLink, setDownloadLink] = useState<string>("");
   const [items, setItems] = useState<DLPItemCardProps[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [badgeText, setBadgeText] = useState<string>("Loading...");
-  const [badgeVariant, setBadgeVariant] = useState<Variant>("warning");
-
-  // Ref pentru callback stabil
+  const [badgeVariant, setBadgeVariant] = useState<Variant>("neutral");
   const callbackRef = useRef(onStatusChange);
   useEffect(() => {
     callbackRef.current = onStatusChange;
   }, [onStatusChange]);
 
-  // Fetch DLP doar la schimbarea dataId
   useEffect(() => {
     if (!dataId) return;
     setLoading(true);
     setError(null);
+    setItems([]);
+    setBadgeText("Loading...");
+    setBadgeVariant("neutral");
 
     axios
       .get<any>(`/file/${dataId}/dlp`)
       .then(({ data }) => {
-        const verdict = data.dlp_info?.verdict;
-        const { text, variant } = formatVerdict(verdict);
+        const dlp = data.dlp_info || {};
+        const hitsObj = dlp.hits || {};
+
+        let totalHits = 0;
+        const severities: number[] = [];
+        Object.values(hitsObj).forEach((info: any) => {
+          const arr = info.hits || [];
+          totalHits += arr.length;
+          arr.forEach((h: any) => severities.push(h.severity ?? 0));
+        });
+        const maxSeverity = severities.length ? Math.max(...severities) : 0;
+
+        const allHits = Object.values(hitsObj).flatMap(
+          (info: any) => info.hits || []
+        );
+        const allowRedact =
+          allHits.length > 0 && allHits.every((h: any) => h.tryRedact);
+        setCanRedact(allowRedact);
+
+        setDownloadLink(`/file/${dataId}/dlp/redacted`);
+        severities.length ? Math.max(...severities) : 0;
+
+        // Determine badge based on API verdict or hits
+        let text: string;
+        let variant: Variant;
+        if (totalHits > 0) {
+          if (maxSeverity === 1 && severities.every((s) => s <= 1)) {
+            text = "Minor Issues Detected";
+            variant = "warning";
+          } else {
+            // Otherwise treat as matched data
+            text = "Found Matched Data";
+            variant = "danger";
+          }
+        } else {
+          text = "No Issues Detected";
+          variant = "success";
+        }
         setBadgeText(text);
         setBadgeVariant(variant);
         callbackRef.current(text, variant);
 
-        const hits = data.dlp_info?.hits || {};
-        const arr: DLPItemCardProps[] = Object.entries(defaultLabels).map(
-          ([uiId, label]) => {
-            const apiKey = Object.entries(apiKeyToUiId).find(
-              ([, id]) => id === uiId
-            )?.[0];
-            const info = apiKey ? hits[apiKey] : undefined;
-            const count = info?.hits?.length ?? 0;
-            const severity =
-              info?.hits?.reduce(
-                (max: number, h: any) => Math.max(max, h.severity || 1),
-                0
-              ) ?? (count > 0 ? 1 : 0);
-            return { id: uiId, label, icon: iconMap[uiId], count, severity };
+        const arr = Object.entries(defaultLabels).map(([uiId, label]) => {
+          const apiKey = Object.entries(apiKeyToUiId).find(
+            ([, id]) => id === uiId
+          )?.[0];
+          const info = apiKey ? (hitsObj as any)[apiKey] : undefined;
+          const count = (info?.hits || []).length;
+          const highestSeverity = (info?.hits || []).reduce(
+            (max: number, h: any) => Math.max(max, h.severity ?? 0),
+            0
+          );
+          let itemSeverity = highestSeverity;
+          // If no severity but there are hits, color based on overall badge variant
+          if (itemSeverity === 0 && count > 0) {
+            itemSeverity =
+              variant === "danger" ? 2 : variant === "warning" ? 1 : 0;
           }
-        );
+          return {
+            id: uiId,
+            label,
+            icon: iconMap[uiId],
+            count,
+            severity: itemSeverity,
+          };
+        });
         setItems(arr);
       })
       .catch((err) => {
@@ -138,7 +162,9 @@ const ProactiveDLP: React.FC<ProactiveDLPProps> = ({
         setBadgeVariant("danger");
         callbackRef.current(msg, "danger");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
   }, [dataId]);
 
   return (
@@ -148,18 +174,36 @@ const ProactiveDLP: React.FC<ProactiveDLPProps> = ({
       badgeText={badgeText}
       badgeVariant={badgeVariant}
       infoTooltip="This section scans for sensitive data in your document"
+      headerRight={
+        <div className="flex items-center space-x-2">
+          <button
+            disabled={!canRedact || loading || !!error}
+            className={`px-4 py-2 text-sm font-medium rounded-lg focus:outline-none 
+              ${
+                canRedact && !loading && !error
+                  ? "bg-gradient-to-r from-blue-500 to-blue-300 hover:from-blue-600 hover:to-blue-400 text-white"
+                  : "bg-gray-500 text-white cursor-not-allowed"
+              }
+            `}
+            onClick={() => {
+              if (downloadLink) window.open(downloadLink, "_blank");
+            }}
+          >
+            Download Redacted Version
+          </button>
+          <ExternalLinkIcon className="w-5 h-5 text-gray-400 hover:text-white" />
+        </div>
+      }
     >
-      <div>
-        {loading && <div>Loading DLP results…</div>}
-        {error && <div className="text-red-500">Error: {error}</div>}
-        {!loading && !error && dataId && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item) => (
-              <DLPItemCard key={item.id} {...item} />
-            ))}
-          </div>
-        )}
-      </div>
+      {loading && <div>Loading DLP results…</div>}
+      {error && <div className="text-red-500">Error: {error}</div>}
+      {!loading && !error && dataId && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map((item) => (
+            <DLPItemCard key={item.id} {...item} />
+          ))}
+        </div>
+      )}
     </SectionCard>
   );
 };
