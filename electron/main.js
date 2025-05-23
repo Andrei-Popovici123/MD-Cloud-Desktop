@@ -32,17 +32,7 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(/*async*/()=>{
-
-// Not  awaiting the Containers to sartup first, will be added in install script
-//  try{
-//   await startDockerCompose();
-//     createWindow();
-//  }
-//   catch{
-//     console.log('Failed to start Docker Containers', err);
-//     app.quit();
-//   }
+app.whenReady().then(()=>{
 
 //checks if file has been picked up by the context menu
 
@@ -60,21 +50,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-//docker start script
-
-// const startDockerCompose = () => {
-//   const composePath = path.join(__dirname, '../docker-compose.yml');
-
-
-//   exec(`docker compose  up -d`, (error, stdout, stderr) => {
-//     if (error) {
-//       console.error(` Docker Compose failed: ${error.message}`);
-//       return;
-//     }
-//     if (stderr) console.warn(` Docker stderr: ${stderr}`);
-//     console.log(` Docker stdout: ${stdout}`);
-//   });
-// };
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
