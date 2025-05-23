@@ -22,6 +22,9 @@
       "target": "nsis",
       "icon": "electron/build/md.ico"
     },
+    "nsis": {
+      "perMachine": true
+    },
     "linux": {
       "target": [
         "deb",
