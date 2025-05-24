@@ -14,13 +14,26 @@ exports.upload = async (req, res, next) => {
     }
 
     if (req.body.folderPath) {
-      const folder = req.body.folderPath;
-      if (!fs.existsSync(folder) || !fs.statSync(folder).isDirectory()) {
-        return res.status(400).json({ error: "Invalid folder path" });
+      const receivedPath = req.body.folderPath;
+      
+      if (!fs.existsSync(receivedPath)) {
+        return res.status(400).json({ error: "Path does not exist" });
       }
 
-      const py = spawn("python", [path.join(__dirname, "../middleware/archive.py"), folder]);
-      const filename = path.basename(folder) + ".zip";
+      let filename;
+      let py;
+
+      if (fs.statSync(receivedPath).isDirectory()) {
+        py = spawn("python", [path.join(__dirname, "../middleware/archive.py"), receivedPath]);
+        filename = path.basename(receivedPath) + ".zip";
+      }
+      else if (fs.statSync(receivedPath).isFile()) {
+        py = spawn("python", [path.join(__dirname, "../middleware/archive.py"), receivedPath]);
+        filename = path.basename(receivedPath);
+      }
+      else {
+        return res.status(400).json({ error: "Not a file or folder" });
+      }
 
       const dataId = await postFileStream(py.stdout, filename);
 
@@ -32,7 +45,6 @@ exports.upload = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // GET /file/dataId
 exports.fetchFullReport = async (req, res, next) => {
