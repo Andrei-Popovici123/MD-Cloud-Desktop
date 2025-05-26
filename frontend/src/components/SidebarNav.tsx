@@ -40,7 +40,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ sections }) => {
   };
 
   return (
-    <nav className="bg-gray-900 sticky top-4 h-[calc(100vh-1rem)] overflow-y-auto w-64 space-y-2 pt-28">
+    <nav className="bg-gray-900 sticky top-12 bottom-0 h-[calc(100vh-1rem)] overflow-y-auto w-64 space-y-6 pt-6 px-5">
       {sections.map((sec) => {
         const statusColor = colorMap[sec.badgeVariant];
         return (

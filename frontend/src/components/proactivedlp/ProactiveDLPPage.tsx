@@ -234,13 +234,12 @@ const ProactiveDLPPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Reset sidebar badges when dataId changes
+  // Reset sidebar badges and start polling when dataId changes
   useEffect(() => {
     setSections(initialSections);
     if (dataId) {
       setShowModal(true);
       setProgress(0);
-      // Poll scan progress until 100%
       const interval = setInterval(async () => {
         try {
           const { data } = await axios.get<{
@@ -334,9 +333,13 @@ const ProactiveDLPPage: React.FC = () => {
         </div>
       )}
 
-      <div onDrop={onDrop} onDragOver={onDragOver} className="min-h-screen">
+      <div
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        className="min-h-screen pt-16 bg-gray-800"
+      >
         {/* Header */}
-        <div className="bg-gray-800 flex items-center justify-between px-6 py-3">
+        <div className="fixed top-0 left-0 w-full z-50 bg-gray-800 flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-2">
             <h1 className="text-white text-lg font-semibold">
               MetaDefender Cloud
@@ -358,18 +361,18 @@ const ProactiveDLPPage: React.FC = () => {
             >
               Add a file
             </button>
-            <input
+            {/* <input
               type="text"
               placeholder="Analyze a File, URL, IP address, Domain, Hash, or CVE"
               className="bg-gray-700 text-gray-200 placeholder-gray-400 px-3 py-1 rounded focus:outline-none"
-            />
+            /> */}
           </div>
         </div>
 
         {/* Main content */}
-        <div className="bg-gray-900 grid grid-cols-[240px_1fr] gap-8">
+        <div className="bg-gray-900 grid grid-cols-[240px_1fr] ">
           <SidebarNav sections={sections} />
-          <main key={dataId} className="p-6 space-y-12">
+          <main key={dataId} className="px-6 py-6 space-y-6">
             <MultiScanning dataId={dataId} onStatusChange={handleMultiscan} />
             <DeepCDRCard dataId={dataId} onStatusChange={handleDeepCdr} />
             <ProactiveDLP dataId={dataId} onStatusChange={handleProactiveDLP} />
