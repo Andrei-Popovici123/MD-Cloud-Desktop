@@ -1,3 +1,8 @@
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+    Write-Host "Docker is not installed. Please install Docker desktop from https://docs.docker.com/desktop/setup/install/windows-install/"
+    Exit 1
+}
+
 Write-Host "Installing backend npm packages..."
 Set-Location -Path .\backend -PassThru
 npm install
