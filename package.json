@@ -28,7 +28,6 @@
     "linux": {
       "target": [
         "deb",
-        "rpm",
         "AppImage"
       ],
       "category": "Utility"
