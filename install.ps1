@@ -27,10 +27,10 @@ npm install
 Set-Location -Path .. -PassThru
 
 Write-Host "Creating docker images..."
-docker-compose build
+docker compose build
 
 Write-Host "Starting docker containers..."
-docker-compose up -d
+docker compose up -d
 
 Write-Host "Installing electron npm packages..."
 npm install

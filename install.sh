@@ -6,7 +6,7 @@ set -e
 # Check that `docker` exists and prints a version
 if ! docker version > /dev/null 2>&1; then
   echo "Docker is not installed or not in your PATH."
-  echo "Install Docker firstly: https://docs.docker.com/engine/install/ubuntu/"
+  echo "Please install Docker first: https://docs.docker.com/engine/install/ubuntu/"
   exit 1
 fi
 
@@ -28,11 +28,11 @@ cd ..
 
 echo ""
 echo "Creating docker images..."
-docker-compose build
+docker compose build
 
 echo ""
 echo "Starting docker containers..."
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "Installing Electron npm packages..."
