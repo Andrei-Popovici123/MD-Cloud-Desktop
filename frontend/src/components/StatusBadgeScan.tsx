@@ -2,13 +2,10 @@ import React from "react";
 import classNames from "classnames";
 
 export interface StatusBadgeProps {
-  // Numeric scan result code returned by OPSWAT
   verdictCode: number;
-  // If true, engine does not support this file type
   unsupported?: boolean;
 }
 
-// Mapping of scan_result_i codes to human-readable verdicts
 const VERDICT_MAP: Record<number, string> = {
   0: "No Threats Found",
   1: "Infected/Known",
@@ -27,7 +24,6 @@ const VERDICT_MAP: Record<number, string> = {
   14: "Exceeded Archive File Number",
   15: "Password Protected Document",
   16: "Exceeded Archive Timeout",
-
   18: "Unsupported File Type",
   23: "Unsupported File Type",
 };
@@ -36,22 +32,28 @@ export const StatusBadgeScan: React.FC<StatusBadgeProps> = ({
   verdictCode,
   unsupported,
 }) => {
-  // Determine the text to show
   const verdictText = unsupported
     ? "Unsupported File Type"
     : VERDICT_MAP[verdictCode] || "Unknown";
 
-  // Determine badge color based on verdict category
   const badgeClass = classNames(
-    "inline-block px-2 py-1  text-xs font-semibold",
+    "inline-block px-2 py-1 text-xs font-semibold text-white",
     {
-      "bg-green-600 text-white": verdictCode === 0 && !unsupported,
-      "bg-red-600 text-white": verdictCode === 1,
-      "bg-yellow-600 text-white": verdictCode === 2,
-      "bg-gray-600 text-white": verdictCode > 2 && !unsupported,
-      "bg-indigo-600 text-white": unsupported,
+      "bg-red-700": verdictCode === 1,
+      "bg-yellow-600": verdictCode === 2,
+      "bg-gray-600": verdictCode > 2 && !unsupported,
+      "bg-indigo-600": unsupported,
     }
   );
 
-  return <span className={badgeClass}>{verdictText}</span>;
+  const badgeStyle =
+    verdictCode === 0 && !unsupported
+      ? { backgroundColor: "rgb(0, 138, 0)" }
+      : undefined;
+
+  return (
+    <span className={badgeClass} style={badgeStyle}>
+      {verdictText}
+    </span>
+  );
 };

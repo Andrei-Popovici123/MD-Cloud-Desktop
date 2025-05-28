@@ -29,32 +29,45 @@ const MultiScanning: React.FC<MultiScanningProps> = ({
 
   useEffect(() => {
     if (!dataId) return;
+
     setLoading(true);
     setError(null);
 
-    axios
-      .get<{
-        scan_results: {
-          scan_details: Record<string, any>;
-          scan_all_result_i: number;
-        };
-      }>(`/file/${dataId}/multiscan`)
-      .then(({ data }) => {
-        const arr: EngineDetail[] = Object.entries(
-          data.scan_results.scan_details
-        ).map(([engine, d]) => ({
-          engine,
-          scan_result_i: d.scan_result_i,
-          lastUpdate: d.def_time ? new Date(d.def_time).toLocaleString() : "",
-        }));
-        setDetails(arr);
-        setScanAllCode(data.scan_results.scan_all_result_i);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError(err.message || "Eroare la încărcarea scanărilor");
-      })
-      .finally(() => setLoading(false));
+    const interval = setInterval(() => {
+      axios
+        .get<{
+          scan_results: {
+            scan_details: Record<string, any>;
+            scan_all_result_i: number;
+            progress_percentage: number;
+          };
+        }>(`/file/${dataId}/multiscan`)
+        .then(({ data }) => {
+          const arr: EngineDetail[] = Object.entries(
+            data.scan_results.scan_details
+          ).map(([engine, d]) => ({
+            engine,
+            scan_result_i: d.scan_result_i,
+            lastUpdate: d.def_time ? new Date(d.def_time).toLocaleString() : "",
+          }));
+
+          setDetails(arr);
+          setScanAllCode(data.scan_results.scan_all_result_i);
+
+          if (data.scan_results.progress_percentage >= 100) {
+            clearInterval(interval);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setError(err.message || "Eroare la încărcarea scanărilor");
+          clearInterval(interval);
+          setLoading(false);
+        });
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [dataId]);
 
   const textMap: Record<number, string> = {
@@ -126,7 +139,15 @@ const MultiScanning: React.FC<MultiScanningProps> = ({
       infoTooltip="Scanarea fișierului pe multiple motoare antivirus."
       headerRight={
         <div className="flex items-baseline space-x-2">
-          <span className="text-5xl font-bold text-white">{detectedCount}</span>
+          <span
+            className="text-5xl font-bold"
+            style={{
+              color: detectedCount > 0 ? "rgb(185, 28, 28)" : "rgb(0, 138, 0)",
+            }}
+          >
+            {detectedCount}
+          </span>
+
           <span className="text-sm text-gray-400">/{totalEngines} ENGINES</span>
         </div>
       }
@@ -134,7 +155,7 @@ const MultiScanning: React.FC<MultiScanningProps> = ({
       {loading && (
         <div className="text-gray-300">Se încarcă rezultatele scanării…</div>
       )}
-      {error && <div className="text-red-500">Eroare: {error}</div>}
+      {error && <div className="text-red-700">Eroare: {error}</div>}
       {!loading && !error && (
         <table className="min-w-full table-auto text-left text-white">
           <thead>

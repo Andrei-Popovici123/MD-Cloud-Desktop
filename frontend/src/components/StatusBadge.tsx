@@ -11,7 +11,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   unsupported = false,
   className = "",
 }) => {
-  const bgClass = unsupported ? "bg-gray-600" : "bg-green-600";
+  const bgClass = unsupported ? "bg-gray-600" : "bg-rgb(0, 138, 0)";
   const text = unsupported ? "Unsupported File Type" : verdict;
 
   return (

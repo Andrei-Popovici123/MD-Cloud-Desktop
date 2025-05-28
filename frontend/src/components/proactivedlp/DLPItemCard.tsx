@@ -16,7 +16,7 @@ export const DLPItemCard: React.FC<DLPItemCardProps> = ({
 }) => {
   const countBg =
     severity >= 2
-      ? "bg-red-600"
+      ? "bg-red-700"
       : severity === 1
       ? "bg-yellow-500"
       : "bg-gray-700";

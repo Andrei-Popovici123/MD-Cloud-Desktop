@@ -486,6 +486,12 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
   const [sanitizedReason, setSanitizedReason] = useState<string>("");
 
   useEffect(() => {
+    if (!dataId) {
+      setError("Data ID is unavailable. Awaiting upload completion.");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setRows([]);
@@ -495,60 +501,68 @@ export const DeepCDRCard: React.FC<DeepCDRCardProps> = ({
     setSanitizedResult("");
     setSanitizedReason("");
 
-    if (!dataId) {
-      setError("Data ID is unavailable. Awaiting upload completion.");
-      setLoading(false);
-      return;
-    }
+    const interval = setInterval(() => {
+      fetchDeepCdr(dataId)
+        .then((response) => {
+          const { sanitized, process_info }: DeepCdrResponse = response.data;
 
-    fetchDeepCdr(dataId)
-      .then((response) => {
-        const { sanitized, process_info }: DeepCdrResponse = response.data;
-        setSanitizedResult(sanitized.result);
-        setSanitizedReason(sanitized.reason || "");
+          const currentProgress = process_info?.progress_percentage ?? 0;
+          setProgress(currentProgress);
 
-        const verdicts = process_info.verdicts || [];
-        const sensitiveFound =
-          verdicts.includes("Sensitive Data Found") ||
-          sanitized.reason === "Sensitive Data Found";
-        setHasSensitive(sensitiveFound);
+          if (sanitized) {
+            setSanitizedResult(sanitized.result);
+            setSanitizedReason(sanitized.reason || "");
+            setDownloadLink(sanitized.file_path || "");
+          }
 
-        setProgress(sanitized.progress_percentage);
-        setDownloadLink(sanitized.file_path);
+          const verdicts = process_info?.verdicts || [];
+          const sensitiveFound =
+            verdicts.includes("Sensitive Data Found") ||
+            sanitized?.reason === "Sensitive Data Found";
+          setHasSensitive(sensitiveFound);
 
-        const details =
-          process_info.post_processing?.sanitization_details?.details;
-        if (Array.isArray(details) && details.length > 0) {
-          setRows(
-            details.map((d: any) => ({
-              object: d.object_name || "Unknown Object",
-              action: d.action || "Processed",
-            }))
+          const details =
+            process_info?.post_processing?.sanitization_details?.details;
+          if (Array.isArray(details) && details.length > 0) {
+            setRows(
+              details.map((d: any) => ({
+                object: d.object_name || "Unknown Object",
+                action: d.action || "Processed",
+              }))
+            );
+          } else {
+            const defaultObjects = [
+              "Custom XML",
+              "External Image",
+              "Hyperlink",
+              "Image",
+            ];
+            setRows(
+              defaultObjects.map((obj) => ({
+                object: obj,
+                action: "Not Present",
+              }))
+            );
+          }
+
+          if (currentProgress >= 100) {
+            clearInterval(interval);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setError(
+            err.response?.data?.message ||
+              err.message ||
+              "Failed to load sanitization data"
           );
-        } else {
-          const defaultObjects = [
-            "Custom XML",
-            "External Image",
-            "Hyperlink",
-            "Image",
-          ];
-          setRows(
-            defaultObjects.map((obj) => ({
-              object: obj,
-              action: "Not Present",
-            }))
-          );
-        }
-      })
-      .catch((err: any) => {
-        console.error(err);
-        const message =
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to load sanitization data";
-        setError(message);
-      })
-      .finally(() => setLoading(false));
+          clearInterval(interval);
+          setLoading(false);
+        });
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [dataId]);
 
   const badgeText = loading

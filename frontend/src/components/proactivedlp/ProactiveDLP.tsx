@@ -196,7 +196,7 @@ const ProactiveDLP: React.FC<ProactiveDLPProps> = ({
       }
     >
       {loading && <div>Loading DLP results…</div>}
-      {error && <div className="text-red-500">Error: {error}</div>}
+      {error && <div className="text-red-700">Error: {error}</div>}
       {!loading && !error && dataId && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((item) => (

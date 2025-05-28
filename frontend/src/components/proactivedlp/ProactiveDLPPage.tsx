@@ -240,21 +240,34 @@ const ProactiveDLPPage: React.FC = () => {
     if (dataId) {
       setShowModal(true);
       setProgress(0);
+
       const interval = setInterval(async () => {
         try {
-          const { data } = await axios.get<{
-            scan_results: { progress_percentage: number };
-          }>(`/file/${dataId}`);
-          const prog = data.scan_results.progress_percentage || 0;
-          setProgress(prog);
-          if (prog >= 100) {
+          const [multiScanRes, cdrRes] = await Promise.all([
+            axios.get<{ scan_results: { progress_percentage: number } }>(
+              `/file/${dataId}`
+            ),
+            axios.get<{ process_info: { progress_percentage: number } }>(
+              `/file/${dataId}/cdr`
+            ),
+          ]);
+
+          const multiProgress =
+            multiScanRes.data.scan_results.progress_percentage || 0;
+          const cdrProgress = cdrRes.data.process_info.progress_percentage || 0;
+
+          const combinedProgress = Math.min(multiProgress, cdrProgress);
+          setProgress(combinedProgress);
+
+          if (multiProgress >= 100 && cdrProgress >= 100) {
             clearInterval(interval);
             setShowModal(false);
           }
         } catch (err) {
-          console.error("Error polling scan status", err);
+          console.error("Error polling scan progress", err);
         }
       }, 1000);
+
       return () => clearInterval(interval);
     }
   }, [dataId]);
@@ -345,7 +358,7 @@ const ProactiveDLPPage: React.FC = () => {
               MetaDefender Cloud
             </h1>
             <span className="bg-blue-600 text-white text-sm px-2 py-0.5 rounded">
-              Community
+              MD Desktop
             </span>
           </div>
           <div className="flex items-center space-x-2">
@@ -373,8 +386,17 @@ const ProactiveDLPPage: React.FC = () => {
         <div className="bg-gray-900 grid grid-cols-[240px_1fr] ">
           <SidebarNav sections={sections} />
           <main key={dataId} className="px-6 py-6 space-y-6">
-            <MultiScanning dataId={dataId} onStatusChange={handleMultiscan} />
-            <DeepCDRCard dataId={dataId} onStatusChange={handleDeepCdr} />
+            <MultiScanning
+              key={`multi-${dataId}`}
+              dataId={dataId}
+              onStatusChange={handleMultiscan}
+            />
+            <DeepCDRCard
+              key={`cdr-${dataId}`}
+              dataId={dataId}
+              onStatusChange={handleDeepCdr}
+            />
+
             <ProactiveDLP dataId={dataId} onStatusChange={handleProactiveDLP} />
           </main>
         </div>

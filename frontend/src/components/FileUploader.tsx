@@ -1,10 +1,7 @@
 import axios from "axios";
 import React, { DragEvent, useState, useEffect } from "react";
-import MultiScanning from "./MultiScanning";
 import { useNavigate } from "react-router-dom";
-import { ProactiveDLPPage } from "./proactivedlp/ProactiveDLPPage";
 
-// Configure axios to target backend
 axios.defaults.baseURL = import.meta.env.PORT || "http://localhost:3000";
 axios.defaults.withCredentials = true;
 
@@ -19,22 +16,18 @@ const FileUploader: React.FC = () => {
   const [progress, setProgress] = useState<number>(0);
   const navigate = useNavigate();
 
-  // Poll backend until progress reaches 100%, then redirect
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (dataId) {
       setShowModal(true);
       interval = setInterval(async () => {
         try {
-          const { data } = await axios.get(`/file/${dataId}`, {
-            withCredentials: true,
-          });
+          const { data } = await axios.get(`/file/${dataId}`);
           const prog = data.process_info?.progress_percentage ?? 0;
           setProgress(prog);
           if (prog >= 100) {
             clearInterval(interval);
             setShowModal(false);
-            // redirect to Proactive DLP page
             navigate(`/proactive-dlp/${dataId}`);
           }
         } catch (error) {
@@ -47,39 +40,38 @@ const FileUploader: React.FC = () => {
     };
   }, [dataId]);
 
-useEffect(() => {
-  // Only runs in Electron — avoid crashing in browser
-  if (window.electronAPI) {
-    window.electronAPI.onFileToUpload(async (filePath: string) => {
-      try {
-        // Convert file path to file data using Electron APIs
-        const fileName = filePath.split(/[/\\]/).pop(); // Extract filename
-        const response = await fetch(`file://${filePath}`);
-        const blob = await response.blob();
-        const file = new File([blob], fileName || 'Uploaded-file', { type: blob.type });
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onFileToUpload(async (filePath: string) => {
+        try {
+          const fileName = filePath.split(/[/\\]/).pop();
+          const response = await fetch(`file://${filePath}`);
+          const blob = await response.blob();
+          const file = new File([blob], fileName || "Uploaded-file", {
+            type: blob.type,
+          });
+          validateAndUpload(file);
+        } catch (err) {
+          console.error("Error loading file:", err);
+          setUploadStatus("Failed to load file from desktop.");
+        }
+      });
+    }
+  }, []);
 
-        validateAndUpload(file);
-      } catch (err) {
-        console.error("Error loading file:", err);
-        setUploadStatus("Failed to load file from desktop.");
-      }
-    });
-  }
-}, []);
-
-  // Handle file selection or drop
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) validateAndUpload(file);
   };
+
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
+
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file) validateAndUpload(file);
   };
 
-  // Validate and upload
   const validateAndUpload = (file: File) => {
     setSelectedFile(file);
     if (file.size > MAX_FILE_SIZE) {
@@ -107,7 +99,6 @@ useEffect(() => {
       if (data.success && data.dataId) {
         setDataId(data.dataId);
       } else if (data.success) {
-        // no processing needed, redirect immediately
         window.location.href = "/proactive-dlp";
       } else {
         setUploadStatus(`Upload failed: ${data.error || "Unknown error."}`);
@@ -129,68 +120,86 @@ useEffect(() => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6">
-      <div className="max-w-md w-full space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-4">
-          Trust no File
-        </h1>
-        <div
-          className="border-2 border-dashed border-gray-500 rounded-md p-6 text-center cursor-pointer transition-colors hover:border-white"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <p className="mb-2">Drag &amp; Drop your file here</p>
-          <p className="text-sm text-gray-400">or</p>
-          <div className="mt-2">
-            <label
-              htmlFor="fileInput"
-              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
-            >
-              Add File
-            </label>
-            <input
-              id="fileInput"
-              type="file"
-              className="hidden"
-              onChange={handleFileInputChange}
-            />
-          </div>
+    <>
+      {/* Header */}
+      <div className="fixed top-0 left-0 w-full z-50 bg-gray-800 flex items-center justify-between px-6 py-3">
+        <div className="flex items-center space-x-2">
+          <h1 className="text-white text-lg font-semibold">
+            MetaDefender Cloud
+          </h1>
+          <span className="bg-blue-600 text-white text-sm px-2 py-0.5 rounded">
+            MD Desktop
+          </span>
         </div>
-        {selectedFile && (
-          <p className="text-sm text-gray-300">
-            Selected File: {selectedFile.name}
-          </p>
-        )}
-        {isUploading ? (
-          <p className="text-yellow-400">Uploading...</p>
-        ) : uploadStatus ? (
-          <p className="text-green-400">{uploadStatus}</p>
-        ) : null}
       </div>
 
-      {/* Processing Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4">
-          <div className="bg-black rounded-lg shadow-xl w-[90vw] h-[90vh] overflow-auto">
-            <div className="flex justify-end p-4">
-              <button
-                className="text-gray-600 hover:text-gray-900 text-2xl leading-none"
-                onClick={() => setShowModal(false)}
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6 pt-24">
+        <div className="w-full max-w-2xl bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold text-center mb-6">Trust no File</h1>
+          <div
+            className="border-2 border-dashed border-gray-500 rounded-md p-8 text-center cursor-pointer transition-colors hover:border-white bg-gray-700"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            <p className="mb-2 text-lg font-medium">
+              Drag & Drop your file here
+            </p>
+            <p className="text-sm text-gray-300">or</p>
+            <div className="mt-4">
+              <label
+                htmlFor="fileInput"
+                className="px-4 py-2 text-sm font-medium rounded-lg focus:outline-none bg-gradient-to-r from-blue-500 to-blue-300 hover:from-blue-600 hover:to-blue-400 text-white"
               >
-                &times;
-              </button>
-            </div>
-            <div
-              className="bg-gray-800 text-white p-6 flex flex-col items-center justify-center"
-              style={{ height: "calc(80vh - 4rem)" }}
-            >
-              <div className="w-12 h-12 border-4 border-t-4 border-gray-200 rounded-full animate-spin" />
-              <p className="mt-4">Processing... {progress}%</p>
+                Add File
+              </label>
+              <input
+                id="fileInput"
+                type="file"
+                className="hidden"
+                onChange={handleFileInputChange}
+              />
             </div>
           </div>
+          {selectedFile && (
+            <p className="text-sm text-gray-300 mt-4">
+              Selected File: {selectedFile.name}
+            </p>
+          )}
+          {isUploading ? (
+            <p className="text-yellow-400 mt-2">Uploading...</p>
+          ) : uploadStatus ? (
+            <p className="mt-2" style={{ color: "rgb(0, 138, 0)" }}>
+              {uploadStatus}
+            </p>
+          ) : null}
         </div>
-      )}
-    </div>
+
+        {/* Processing Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4">
+            <div className="bg-black rounded-lg shadow-xl w-[90vw] h-[90vh] overflow-auto">
+              <div className="flex justify-end p-4">
+                <button
+                  className="text-gray-400 hover:text-white text-2xl leading-none"
+                  onClick={() => setShowModal(false)}
+                >
+                  &times;
+                </button>
+              </div>
+              <div
+                className="bg-gray-800 text-white p-6 flex flex-col items-center justify-center"
+                style={{ height: "calc(80vh - 4rem)" }}
+              >
+                <div className="w-12 h-12 border-4 border-t-blue-500 border-white rounded-full animate-spin" />
+                <p className="mt-4 text-lg font-medium">
+                  Processing... {progress}%
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

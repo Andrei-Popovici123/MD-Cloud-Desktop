@@ -15,7 +15,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 }) => (
   <div className="flex items-start w-full bg-gray-800 px-6 py-3 rounded-lg hover:bg-gray-700 transition">
     {/* Icon */}
-    <div className="p-2 bg-gray-700 rounded-md flex-shrink-0">{icon}</div>
+    <div className="p-2 bg-gray-700 rounded-md flex-shrink-0 w-8 h-8">
+      {icon}
+    </div>
 
     {/* Content: Title + Status */}
     <div className="ml-3 flex flex-col">

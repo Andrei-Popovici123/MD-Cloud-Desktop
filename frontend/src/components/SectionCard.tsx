@@ -21,12 +21,12 @@ export const SectionCard: React.FC<SectionCardProps> = ({
 }) => {
   const badgeBg =
     badgeVariant === "danger"
-      ? "bg-red-600"
+      ? "bg-red-700"
       : badgeVariant === "warning"
       ? "bg-yellow-500"
       : badgeVariant === "neutral"
       ? "bg-gray-500"
-      : "bg-green-600";
+      : { backgroundColor: "rgb(0, 138, 0)" };
 
   return (
     <div id={id} className="bg-gray-800 rounded-lg p-6">
