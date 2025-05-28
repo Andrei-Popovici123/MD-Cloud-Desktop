@@ -11,6 +11,12 @@ backend_folder="$root_folder/backend"
 electron_dist="$root_folder/electron/dist"
 app_package_name="md-cloud-desktop"
 
+if [ -n "$SUDO_USER" ]; then
+  user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+  user_home="$HOME"
+fi
+desktop_shortcut_path="$user_home/Desktop/${app_package_name}.desktop"
 
 # sudo check
 if [[ $EUID -ne 0 ]]; then
@@ -52,7 +58,17 @@ else
     echo "package '$app_package_name' not found -> skipping removal"
 fi
 
-
+# desktop shortcut
+echo ""
+echo "Removing desktop shortcut..."
+if [ -f "$desktop_shortcut_path" ]; then
+    rm "$desktop_shortcut_path"
+    echo "Desktop shortcut removed."
+    #echo $desktop_shortcut_path
+else
+    echo "Desktop shortcut not found -> skipping removal."
+    #echo $desktop_shortcut_path
+fi
 
 echo ""
 echo "Deleting node_modules directories"

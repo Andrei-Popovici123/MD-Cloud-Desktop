@@ -17,7 +17,7 @@
   },
   "build": {
     "appId": "com.yourcompany.yourapp",
-    "productName": "MD Cloud Desktop",
+    "productName": "MD-Cloud-Desktop",
     "win": {
       "target": "nsis",
       "icon": "electron/build/md.ico"
@@ -30,7 +30,9 @@
         "deb",
         "AppImage"
       ],
-      "category": "Utility"
+      "category": "Utility",
+      "executableName":"md-cloud-desktop",
+      "icon": "icons"
     },
     "directories": {
       "output": "electron/dist",

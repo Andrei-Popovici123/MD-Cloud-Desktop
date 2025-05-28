@@ -46,6 +46,20 @@ echo ""
 echo "Installing the app..."
 sudo dpkg -i electron/dist/md-cloud-desktop_1.0.0_amd64.deb
 
+echo ""
+echo "Adding desktop shortcut..."
+cp /usr/share/applications/md-cloud-desktop.desktop "$HOME/Desktop/"
+
+if command -v gio > /dev/null 2>&1; then
+  echo "Marking launcher as trusted..."
+  gio set "$HOME/Desktop/md-cloud-desktop.desktop" metadata::trusted true
+else
+  echo "Warning: 'gio' not found; you may need to right-click and Allow Launching manually."
+fi
+
+
+chmod +x $HOME/Desktop/md-cloud-desktop.desktop
+
 cd electron/dist/linux-unpacked
 sudo chmod 4755 chrome-sandbox
 sudo chown root:root chrome-sandbox

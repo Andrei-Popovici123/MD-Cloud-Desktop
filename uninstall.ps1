@@ -22,7 +22,7 @@ Safe-Remove (Join-Path $backendDir "node_modules")
 Safe-Remove $electronDist
 
 $programFiles = $Env:ProgramFiles
-$installDir = Join-Path $programFiles "MD Cloud Desktop"
+$installDir = Join-Path $programFiles "MD-Cloud-Desktop"
 
 if (-not (Test-Path $installDir)) {
     Write-Warning "Installation folder not found $installDir"
@@ -31,7 +31,7 @@ if (-not (Test-Path $installDir)) {
 
 Push-Location $installDir
 
-$uninstaller = Join-Path $installDir "Uninstall MD Cloud Desktop.exe"
+$uninstaller = Join-Path $installDir "Uninstall MD-Cloud-Desktop.exe"
 if (-not (Test-Path $uninstaller)) {
     Write-Warning "Uninstaller not found at $uninstaller"
     exit 1
