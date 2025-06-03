@@ -1,4 +1,5 @@
 import axios from "axios";
+import { exitCode } from "process";
 import React, { DragEvent, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -41,22 +42,49 @@ const FileUploader: React.FC = () => {
   }, [dataId]);
 
   useEffect(() => {
-    if (window.electronAPI) {
-      window.electronAPI.onFileToUpload(async (filePath: string) => {
-        try {
-          const fileName = filePath.split(/[/\\]/).pop();
-          const response = await fetch(`file://${filePath}`);
-          const blob = await response.blob();
-          const file = new File([blob], fileName || "Uploaded-file", {
-            type: blob.type,
-          });
-          validateAndUpload(file);
-        } catch (err) {
-          console.error("Error loading file:", err);
-          setUploadStatus("Failed to load file from desktop.");
+    
+    window.electron.ipcRenderer.on('context-binary-upload', async (filePath) => {
+
+    try {
+      const buffer = await window.electron.ipcRenderer.runMiddleware(filePath);
+
+      const uint8 = new Uint8Array(buffer);
+
+      let headerEnd = -1;
+      for (let i = 0; i < uint8.length - 1; i++) {
+        if (uint8[i] === 0x0A && uint8[i + 1] === 0x0A) {
+          headerEnd = i;
+          break;
         }
+      }
+
+      if (headerEnd === -1) {
+        console.error('[frontend] No metadata delimiter (\\n\\n) found in buffer!');
+        return;
+      }
+
+      const metadataText = new TextDecoder('utf-8').decode(uint8.slice(0, headerEnd));
+      const metadata = JSON.parse(metadataText);
+
+      const binary= uint8.slice(headerEnd + 2);
+
+      const blob = new Blob([binary],{type: metadata.mimetype})
+
+      const file = new File([blob],metadata.name,{
+        type: metadata.mimetype,
+        lastModified: metadata.lastModifie || Date.now()
       });
-    }
+      handleUpload(file);
+
+    }catch (error) {
+        console.error(' Error calling runMiddleware:', error);
+      }
+    });
+
+    // Cleanup the listener when the component unmounts
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('context-binary-upload');
+    };
   }, []);
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

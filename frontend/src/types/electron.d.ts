@@ -2,8 +2,12 @@ export {};
 
 declare global {
   interface Window {
-    electronAPI?: {
-      onFileToUpload: (callback: (filePath: string) => void) => void;
+    electron: {
+      ipcRenderer: {
+        on: (channel: string, listener: (event: any, ...args: any[]) => void) => void;
+        removeAllListeners: (channel: string) => void;
+         runMiddleware: (filePath: string) => Promise<Buffer>;
+      };
     };
   }
 }

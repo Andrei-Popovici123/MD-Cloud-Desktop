@@ -1,6 +1,9 @@
 @echo off
-REM Get path from context menu
 set FILE_PATH=%1
 
-REM Activate Python middleware
-python C:\Users\alexc\Desktop\MD-Cloud-Desktop\backend\src\middleware\archive.py "%FILE_PATH%"
+REM Navigate to project folder
+cd /d D:\Projects\MD-Cloud-Desktop
+
+
+REM Pass FILE_PATH as an argument to npm start
+ npm run start  -- "%FILE_PATH%"

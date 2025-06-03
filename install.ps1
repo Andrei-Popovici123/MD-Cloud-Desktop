@@ -7,9 +7,9 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 
 Write-Host "Docker is installed. Checking if Docker Desktop is running..."
 
-if(-not ((docker ps 2>&1) -match '^(?!error)')){
-   Write-Host "Docker Desktop is not running. Please start Docker Desktop and try again."
-   Exit 1
+if (-not ((docker ps 2>&1) -match '^(?!error)')) {
+    Write-Host "Docker Desktop is not running. Please start Docker Desktop and try again."
+    Exit 1
 }
 
 Write-Host "Docker Desktop is running. Proceeding..."
@@ -40,3 +40,6 @@ npm run build
 
 Write-Host "Installing the app..."
 Start-Process -FilePath ".\electron\dist\MD-Cloud-Desktop Setup 1.0.0.exe"
+
+# Write-Host "Running Context Menu ..."
+# Start-Process -FilePath ".\assets\scan_with_opswat.reg"

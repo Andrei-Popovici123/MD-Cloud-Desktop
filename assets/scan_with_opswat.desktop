@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Action
+Name=Scan with OPSWAT
+Icon=security-high
+Profiles=on_files
+
+[X-Action-Profile on_files]
+MimeTypes=inode/directory
+Exec=/opt/md-cloud-desktop/md-cloud-desktop "%F"
+
+[X-Action-Profile on_folders]
+MimeTypes=inode/directory;
+Exec=/opt/md-cloud-desktop/md-cloud-desktop "%F"
