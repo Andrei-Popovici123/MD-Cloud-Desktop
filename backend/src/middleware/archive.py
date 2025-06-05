@@ -8,7 +8,7 @@ import stat
 from datetime import datetime
 
 LOG_FILE = os.path.join(os.path.dirname(__file__), '..', '..', 'archive.log')
-MAX_SIZE = 4 * 1024 * 1024 
+MAX_SIZE = 4 * 1024 * 1024
 
 def log(message):
     timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")

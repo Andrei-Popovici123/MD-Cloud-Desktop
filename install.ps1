@@ -1,3 +1,27 @@
+param(
+    [string]$apikey
+)
+
+$rootDir = $PSScriptRoot
+
+if ($apikey) {
+    $envFile = Join-Path $rootDir ".env"
+    $envContent = Get-Content $envFile -Raw
+    $updatedContent = $envContent -replace "OPSWAT_API_KEY=.*", "OPSWAT_API_KEY=$apikey"
+    Set-Content -Path $envFile -Value $updatedContent -NoNewline
+    Write-Host "API key has been updated in .env file"
+
+    $backendEnvFile = Join-Path $PSScriptRoot "backend\.env"
+    $backendEnvContent = Get-Content $backendEnvFile -Raw
+    $updatedBackendContent = $backendEnvContent -replace "OPSWAT_API_KEY=.*", "OPSWAT_API_KEY=$apikey"
+    Set-Content -Path $backendEnvFile -Value $updatedBackendContent -NoNewline
+    
+    Write-Host "API key has been updated in backend .env files"
+}
+
+$logFile = Join-Path $rootDir "install.log"
+Clear-Content -Path $logFile -ErrorAction SilentlyContinue
+
 Write-Host "Checking if Docker is installed..."
 
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
@@ -15,28 +39,28 @@ if (-not ((docker ps 2>&1) -match '^(?!error)')) {
 Write-Host "Docker Desktop is running. Proceeding..."
 
 Write-Host "Installing backend npm packages..."
-Set-Location -Path .\backend -PassThru
-npm install
+Set-Location -Path .\backend -PassThru  *>> $logFile
+npm install  *>> $logFile
 
-Set-Location -Path .. -PassThru
+Set-Location -Path .. -PassThru  *>> $logFile
 
 Write-Host "Installing frontend npm packages..."
-Set-Location -Path .\frontend -PassThru
-npm install
+Set-Location -Path .\frontend -PassThru  *>> $logFile
+npm install  *>> $logFile
 
-Set-Location -Path .. -PassThru
+Set-Location -Path .. -PassThru  *>> $logFile
 
 Write-Host "Creating docker images..."
-docker compose build
+docker compose build  *>> $logFile
 
 Write-Host "Starting docker containers..."
-docker compose up -d
+docker compose up -d  *>> $logFile
 
 Write-Host "Installing electron npm packages..."
-npm install
+npm install  *>> $logFile
 
 Write-Host "Building Electron app..."
-npm run build
+npm run build  *>> $logFile
 
 Write-Host "Installing the app..."
 Start-Process -FilePath ".\electron\dist\MD-Cloud-Desktop Setup 1.0.0.exe"

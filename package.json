@@ -31,12 +31,15 @@
         "AppImage"
       ],
       "category": "Utility",
-      "executableName":"md-cloud-desktop",
+      "executableName": "md-cloud-desktop",
       "icon": "icons"
     },
     "directories": {
       "output": "electron/dist",
       "buildResources": "electron/build"
     }
+  },
+  "dependencies": {
+    "winston": "^3.17.0"
   }
 }

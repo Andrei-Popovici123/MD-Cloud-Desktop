@@ -2,7 +2,8 @@
 set FILE_PATH=%1
 
 REM Navigate to project folder
-cd /d D:\Projects\MD-Cloud-Desktop
+REM cd /d D:\Projects\MD-Cloud-Desktop
+cd /d C:\Users\alexc\Desktop\MD-Cloud-Desktop
 
 
 REM Pass FILE_PATH as an argument to npm start

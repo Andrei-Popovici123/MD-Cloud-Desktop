@@ -7,6 +7,7 @@ const uploadRouter = require("./src/fileUpload/routes");
 const cdrRouter = require("./src/deepCDR/route");
 const dlpRouter = require("./src/dlp/route");
 const multiscanRouter = require("./src/multiScan/route");
+const logger = require("./src/utils/logger");
 
 const app = express();
 app.use(cors());
@@ -25,5 +26,5 @@ app.use("/", dlpRouter);
 app.use("/", multiscanRouter);
 
 app.listen(PORT, () => {
-  console.log(`Express server running at http://localhost:${PORT}/`);
+  logger.info(`Express server running at http://localhost:${PORT}/`);
 });

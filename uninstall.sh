@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# need to do this command 
+# need to do this command
 # chmod +x uninstall.sh
 
 # folders
@@ -10,6 +10,8 @@ frontend_folder="$root_folder/frontend"
 backend_folder="$root_folder/backend"
 electron_dist="$root_folder/electron/dist"
 app_package_name="md-cloud-desktop"
+logfile="$root_folder/uninstall.log"
+> "$logfile"
 
 if [ -n "$SUDO_USER" ]; then
   user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
@@ -25,13 +27,21 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+# delete apikey from .env file
+sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=/" .env
+
+# delete apikey from backend .env file
+sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=/" backend/.env
+
+echo "API keys have been removed from .env files"
+
 
 # docker
 echo ""
-if command -v docker &> /dev/null; then
+if command -v docker >> "$logfile" 2>&1; then
   if [ -f "$root_folder/docker-compose.yaml" ]; then
     echo "Stopping Docker containers..."
-    if docker compose -f "$root_folder/docker-compose.yaml" down; then
+    if docker compose -f "$root_folder/docker-compose.yaml" down >> "$logfile" 2>&1; then
       echo "Docker containers stopped and removed."
     else
       echo "Docker cleanup ran but some containers failed to stop."
@@ -46,9 +56,9 @@ fi
 # package
 echo ""
 echo "Uninstalling MD Cloud Desktop package"
-if apt list --installed | grep -q "$app_package_name"; then
+if apt list --installed  >> "$logfile" 2>&1 | grep -q "$app_package_name"; then
     echo "Package '$app_package_name' found. Attempting to remove..."
-    apt remove "$app_package_name" -y
+    apt remove "$app_package_name" -y  >> "$logfile" 2>&1
     if [ $? -eq 0 ]; then
         echo " package uninstalled successfully."
     else
@@ -62,7 +72,7 @@ fi
 echo ""
 echo "Removing desktop shortcut..."
 if [ -f "$desktop_shortcut_path" ]; then
-    rm "$desktop_shortcut_path"
+    rm "$desktop_shortcut_path"  >> "$logfile" 2>&1
     echo "Desktop shortcut removed."
     #echo $desktop_shortcut_path
 else
@@ -77,9 +87,9 @@ echo "Deleting node_modules directories"
 echo ""
 if [ -d "$root_folder/node_modules" ]; then
     echo "Removing $root_folder/node_modules..."
-    rm -rf "$root_folder/node_modules"
+    rm -rf "$root_folder/node_modules" >> "$logfile" 2>&1
 else
-    echo "$root_folder/node_modules not found -> skipping."
+    echo "Electron node_modules directory not found -> skipping."
 fi
 
 
@@ -87,9 +97,9 @@ fi
 echo ""
 if [ -d "$frontend_folder/node_modules" ]; then
     echo "Removing $frontend_folder/node_modules..."
-    rm -rf "$frontend_folder/node_modules"
+    rm -rf "$frontend_folder/node_modules" >> "$logfile" 2>&1
 else
-    echo "$frontend_folder/node_modules not found -> skipping."
+    echo "Frontend node_modules directory not found -> skipping."
 fi
 
 
@@ -97,9 +107,9 @@ fi
 echo ""
 if [ -d "$backend_folder/node_modules" ]; then
     echo "Removing $backend_folder/node_modules..."
-    rm -rf "$backend_folder/node_modules"
+    rm -rf "$backend_folder/node_modules" >> "$logfile" 2>&1
 else
-    echo "$backend_folder/node_modules not found -> skipping."
+    echo "Backend node_modules directory not found -> skipping."
 fi
 
 
@@ -107,9 +117,9 @@ fi
 echo ""
 echo "Deleting electron distribution folder"
 if [ -d "$electron_dist" ]; then
-    rm -rf "$electron_dist"
+    rm -rf "$electron_dist" >> "$logfile" 2>&1
 else
-    echo "$electron_dist not found -> skipping."
+    echo "Electron distribution directory not found -> skipping."
 fi
 
 

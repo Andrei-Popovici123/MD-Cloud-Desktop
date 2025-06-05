@@ -3,15 +3,15 @@ Windows Registry Editor Version 5.00
 ; Context menu for all files
 [HKEY_CLASSES_ROOT\*\shell\MDCloudDesktop]
 @="Scan with OPSWAT"
-"Icon"="C:\\Program Files\\MD Cloud Desktop\\icon.ico"
+"Icon"="C:\\Program Files\\MD-Cloud-Desktop\\icon.ico"
 
 [HKEY_CLASSES_ROOT\*\shell\MDCloudDesktop\command]
-@="\"C:\\Program Files\\MD Cloud Desktop\\MD Cloud Desktop.exe\" \"%1\""
+@="\"C:\\Program Files\\MD-Cloud-Desktop\\MD-Cloud-Desktop.exe\" \"%1\""
 
 ; Context menu for all folders
 [HKEY_CLASSES_ROOT\Directory\shell\MDCloudDesktop]
 @="Scan with OPSWAT"
-"Icon"="C:\\Program Files\\MD Cloud Desktop\\icon.ico"
+"Icon"="C:\\Program Files\\MD-Cloud-Desktop\\icon.ico"
 
 [HKEY_CLASSES_ROOT\Directory\shell\MDCloudDesktop\command]
-@="\"C:\\Program Files\\MD Cloud Desktop\\MD Cloud Desktop.exe\" \"%1\""
+@="\"C:\\Program Files\\MD-Cloud-Desktop\\MD-Cloud-Desktop.exe\" \"%1\""

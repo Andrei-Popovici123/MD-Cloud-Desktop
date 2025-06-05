@@ -1,13 +1,4 @@
-const path = require("path");
-const fs = require("fs");
-const crypto = require("crypto");
 const multer = require("multer");
-
-const uploadFolder = path.resolve(__dirname, "../../uploads");
-
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder);
-}
 
 const storage = multer.memoryStorage();
 

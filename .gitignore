@@ -3,3 +3,4 @@ node_modules
 electron/dist
 assets/scan_with_opswat_test.reg
 dev-launcher.bat
+*.log
