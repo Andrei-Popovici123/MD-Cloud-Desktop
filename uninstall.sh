@@ -27,14 +27,8 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# delete apikey from .env file
-sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=/" .env
-
-# delete apikey from backend .env file
-sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=/" backend/.env
-
-echo "API keys have been removed from .env files"
-
+echo "Running deleteApiKey script..."
+node backend/src/utils/deleteApiKey.js >> "$logfile" 2>&1
 
 # docker
 echo ""

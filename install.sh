@@ -9,16 +9,6 @@ if [ "$#" -ne 3 ]; then
 fi
 API_KEY=$3
 
-# set the apikey from the argument to the .env file in root folder and backend folder
-if [ ! -z "$API_KEY" ]; then
-    sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=$API_KEY/" .env
-    
-    sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=$API_KEY/" backend/.env
-    
-    echo "API key has been updated in both .env files"
-fi
-
-
 root_folder="$(dirname "$(readlink -f "$0")")"
 logfile="$root_folder/install.log"
 
@@ -30,10 +20,19 @@ fi
 
 echo "Docker is installed, proceeding..."
 
+# echo ""
+# echo "Installing libsecret package..."
+# sudo apt-get install libsecret-1-dev >> "$logfile" 2>&1
+
+
 echo ""
 echo "Installing backend npm packages..."
 cd backend >> "$logfile" 2>&1
 npm install >> "$logfile" 2>&1
+
+echo "Running saveApiKey script..."
+node backend/src/utils/saveApiKey.js "$API_KEY" >> "$logfile" 2>&1
+echo "API key has been securely saved"
 
 cd .. >> "$logfile" 2>&1
 

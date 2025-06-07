@@ -4,21 +4,6 @@ param(
 
 $rootDir = $PSScriptRoot
 
-if ($apikey) {
-    $envFile = Join-Path $rootDir ".env"
-    $envContent = Get-Content $envFile -Raw
-    $updatedContent = $envContent -replace "OPSWAT_API_KEY=.*", "OPSWAT_API_KEY=$apikey"
-    Set-Content -Path $envFile -Value $updatedContent -NoNewline
-    Write-Host "API key has been updated in .env file"
-
-    $backendEnvFile = Join-Path $PSScriptRoot "backend\.env"
-    $backendEnvContent = Get-Content $backendEnvFile -Raw
-    $updatedBackendContent = $backendEnvContent -replace "OPSWAT_API_KEY=.*", "OPSWAT_API_KEY=$apikey"
-    Set-Content -Path $backendEnvFile -Value $updatedBackendContent -NoNewline
-    
-    Write-Host "API key has been updated in backend .env files"
-}
-
 $logFile = Join-Path $rootDir "install.log"
 Clear-Content -Path $logFile -ErrorAction SilentlyContinue
 
@@ -41,6 +26,13 @@ Write-Host "Docker Desktop is running. Proceeding..."
 Write-Host "Installing backend npm packages..."
 Set-Location -Path .\backend -PassThru  *>> $logFile
 npm install  *>> $logFile
+
+if ($apikey) {
+    $apiKeyScript = Join-Path $rootDir "backend\src\utils\saveApiKey.js"
+    node $apiKeyScript $apikey *>> $logFile
+
+    Write-Host "API key has been securely stored"
+}
 
 Set-Location -Path .. -PassThru  *>> $logFile
 

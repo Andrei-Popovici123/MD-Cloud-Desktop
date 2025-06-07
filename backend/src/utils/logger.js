@@ -26,6 +26,12 @@ const logger = createLogger({
       level: "error",
       options: { flags: "w" }
     }),
+
+    new transports.File({
+      filename: "logs/warn.log",
+      level: "warn",
+      options: { flags: "w" }
+    }),
   ],
 
   exitOnError: false,

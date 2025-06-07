@@ -20,17 +20,10 @@ function Safe-Remove([string]$path) {
     }
 }
 
-$rootEnvFile = Join-Path $PSScriptRoot ".env"
-$rootEnvContent = Get-Content $rootEnvFile -Raw
-$updatedRootContent = $rootEnvContent -replace "OPSWAT_API_KEY=.*", "OPSWAT_API_KEY="
-Set-Content -Path $rootEnvFile -Value $updatedRootContent -NoNewline
+$apiKeyScript = Join-Path $rootDir "backend\src\utils\deleteApiKey.js"
+node $apiKeyScript *>> $logFile
 
-$backendEnvFile = Join-Path $PSScriptRoot "backend\.env"
-$backendEnvContent = Get-Content $backendEnvFile -Raw
-$updatedBackendContent = $backendEnvContent -replace "OPSWAT_API_KEY=.*", "OPSWAT_API_KEY="
-Set-Content -Path $backendEnvFile -Value $updatedBackendContent -NoNewline
-
-Write-Host "API keys have been removed from .env files"
+Write-Host "API key has been removed from secure storage"
 
 Safe-Remove (Join-Path $rootDir "node_modules")
 Safe-Remove (Join-Path $frontendDir "node_modules")
