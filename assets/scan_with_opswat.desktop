@@ -6,8 +6,8 @@ Profiles=on_files
 
 [X-Action-Profile on_files]
 MimeTypes=inode/directory
-Exec=/opt/md-cloud-desktop/md-cloud-desktop "%F"
+Exec=/opt/md-desktop/md-desktop "%F"
 
 [X-Action-Profile on_folders]
 MimeTypes=inode/directory;
-Exec=/opt/md-cloud-desktop/md-cloud-desktop "%F"
+Exec=/opt/md-desktop/md-desktop "%F"

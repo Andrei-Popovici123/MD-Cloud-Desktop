@@ -9,7 +9,7 @@ root_folder="$(dirname "$(readlink -f "$0")")"
 frontend_folder="$root_folder/frontend"
 backend_folder="$root_folder/backend"
 electron_dist="$root_folder/electron/dist"
-app_package_name="md-cloud-desktop"
+app_package_name="md-desktop"
 logfile="$root_folder/uninstall.log"
 > "$logfile"
 
@@ -49,7 +49,7 @@ fi
 
 # package
 echo ""
-echo "Uninstalling MD Cloud Desktop package"
+echo "Uninstalling MD Desktop package"
 if apt list --installed  >> "$logfile" 2>&1 | grep -q "$app_package_name"; then
     echo "Package '$app_package_name' found. Attempting to remove..."
     apt remove "$app_package_name" -y  >> "$logfile" 2>&1
@@ -118,4 +118,4 @@ fi
 
 
 echo ""
-echo "MD Cloud Desktop uninstall has been completed"
+echo "MD Desktop uninstall has been completed"

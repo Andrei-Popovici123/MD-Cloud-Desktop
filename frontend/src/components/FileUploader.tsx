@@ -1,6 +1,5 @@
 import axios from "axios";
-import { exitCode } from "process";
-import React, { DragEvent, useState, useEffect } from "react";
+import React, { DragEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 axios.defaults.baseURL = import.meta.env.PORT || "http://localhost:3000";
@@ -153,7 +152,7 @@ const FileUploader: React.FC = () => {
       <div className="fixed top-0 left-0 w-full z-50 bg-gray-800 flex items-center justify-between px-6 py-3">
         <div className="flex items-center space-x-2">
           <h1 className="text-white text-lg font-semibold">
-            MetaDefender Cloud
+            MetaDefender
           </h1>
           <span className="bg-blue-600 text-white text-sm px-2 py-0.5 rounded">
             MD Desktop

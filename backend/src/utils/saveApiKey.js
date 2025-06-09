@@ -1,7 +1,7 @@
 const keytar = require("keytar");
 const logger = require("../utils/logger");
 
-const SERVICE = "md-cloud-desktop";
+const SERVICE = "md-desktop";
 const ACCOUNT = "OPSWAT_API_KEY";
 
 async function main() {

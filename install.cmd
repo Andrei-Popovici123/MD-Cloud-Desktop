@@ -7,8 +7,10 @@ IF "%1"=="-apikey" (
         PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%PowerShellScriptPath%' -apikey '%2'"
     ) ELSE (
         ECHO Error: API key value not provided
+        ECHO Usage: .\install.cmd -apikey apikey_value
         EXIT /B 1
     )
 ) ELSE (
-    PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%PowerShellScriptPath%'"
+    ECHO Usage: .\install.cmd -apikey apikey_value
+    EXIT /B 1
 )

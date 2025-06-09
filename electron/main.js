@@ -22,7 +22,7 @@ function createWindow() {
   
   mainWindow.loadURL('http://localhost:5173');
   
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
   
   mainWindow.webContents.once('did-finish-load',()=>{
     if(queuedFilePath){

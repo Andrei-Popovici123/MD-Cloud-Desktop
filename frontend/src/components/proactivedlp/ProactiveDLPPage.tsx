@@ -1,12 +1,12 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import SidebarNav from "../SidebarNav";
-import MultiScanning from "../MultiScanning";
 import { DeepCDRCard } from "../DeepCDRCard";
-import ProactiveDLP from "./ProactiveDLP";
+import MultiScanning from "../MultiScanning";
+import SidebarNav from "../SidebarNav";
 import ZipFileViewer from "../ZipFileViewer";
+import ProactiveDLP from "./ProactiveDLP";
 
 export type Variant = "success" | "warning" | "danger" | "neutral";
 
@@ -184,7 +184,7 @@ const ProactiveDLPPage: React.FC = () => {
         <div className="fixed top-0 left-0 w-full z-50 bg-gray-800 flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-2">
             <h1 className="text-white text-lg font-semibold">
-              MetaDefender Cloud
+              MetaDefender
             </h1>
             <span className="bg-blue-600 text-white text-sm px-2 py-0.5 rounded">
               MD Desktop

@@ -1,5 +1,5 @@
 {
-  "name": "md-cloud-desktop",
+  "name": "md-desktop",
   "version": "1.0.0",
   "description": "Your Electron Desktop App",
   "main": "electron/main.js",
@@ -17,7 +17,7 @@
   },
   "build": {
     "appId": "com.yourcompany.yourapp",
-    "productName": "MD-Cloud-Desktop",
+    "productName": "MD-Desktop",
     "win": {
       "target": "nsis",
       "icon": "electron/build/md.ico"
@@ -31,7 +31,7 @@
         "AppImage"
       ],
       "category": "Utility",
-      "executableName": "md-cloud-desktop",
+      "executableName": "md-desktop",
       "icon": "icons"
     },
     "directories": {

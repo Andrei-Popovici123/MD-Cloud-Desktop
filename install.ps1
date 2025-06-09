@@ -46,7 +46,7 @@ Write-Host "Creating docker images..."
 docker compose build  *>> $logFile
 
 Write-Host "Starting docker containers..."
-docker compose up -d  *>> $logFile
+docker compose -p mddesktop up -d  *>> $logFile
 
 Write-Host "Installing electron npm packages..."
 npm install  *>> $logFile
@@ -55,7 +55,7 @@ Write-Host "Building Electron app..."
 npm run build  *>> $logFile
 
 Write-Host "Installing the app..."
-Start-Process -FilePath ".\electron\dist\MD-Cloud-Desktop Setup 1.0.0.exe"
+Start-Process -FilePath ".\electron\dist\MD-Desktop Setup 1.0.0.exe"
 
 # Write-Host "Running Context Menu ..."
 # Start-Process -FilePath ".\assets\scan_with_opswat.reg"

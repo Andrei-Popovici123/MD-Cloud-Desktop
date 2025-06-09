@@ -1,5 +1,4 @@
 Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
 
 $rootDir = $PSScriptRoot
 $frontendDir = Join-Path $rootDir "frontend"
@@ -7,6 +6,21 @@ $backendDir = Join-Path $rootDir "backend"
 $electronDist = Join-Path $rootDir "electron\dist"
 $logFile = Join-Path $rootDir "uninstall.log"
 Clear-Content -Path $logFile -ErrorAction SilentlyContinue
+
+
+Write-Host "Checking if Docker is installed..."
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+    Write-Host "Docker is not installed. Please install Docker Desktop from https://docs.docker.com/desktop/setup/install/windows-install/"
+    Exit 1
+}
+
+Write-Host "Docker is installed. Checking if Docker Desktop is running..."
+if (-not ((docker ps 2>&1) -match '^(?!error)')) {
+    Write-Host "Docker Desktop is not running. Please start Docker Desktop and try again."
+    Exit 1
+}
+Write-Host "Docker Desktop is running. Proceeding..."
+
 
 function Safe-Remove([string]$path) {
     if (Test-Path $path) {
@@ -20,6 +34,7 @@ function Safe-Remove([string]$path) {
     }
 }
 
+Write-Host "Removing API key from secure storage..."
 $apiKeyScript = Join-Path $rootDir "backend\src\utils\deleteApiKey.js"
 node $apiKeyScript *>> $logFile
 
@@ -30,8 +45,12 @@ Safe-Remove (Join-Path $frontendDir "node_modules")
 Safe-Remove (Join-Path $backendDir "node_modules")
 Safe-Remove $electronDist
 
+Write-Host "Removing Docker containers and images..."
+docker compose -p mddesktop down --rmi all *>> $logFile
+Write-Host "Docker containers and images removed"
+
 $programFiles = $Env:ProgramFiles
-$installDir = Join-Path $programFiles "MD-Cloud-Desktop"
+$installDir = Join-Path $programFiles "MD-Desktop"
 
 if (-not (Test-Path $installDir)) {
     Write-Warning "Installation folder not found $installDir"
@@ -41,7 +60,7 @@ if (-not (Test-Path $installDir)) {
 
 Push-Location $installDir
 
-$uninstaller = Join-Path $installDir "Uninstall MD-Cloud-Desktop.exe"
+$uninstaller = Join-Path $installDir "Uninstall MD-Desktop.exe"
 if (-not (Test-Path $uninstaller)) {
     Write-Warning "Uninstaller not found at $uninstaller"
     "Uninstaller not found at $uninstaller" *>> $logFile
