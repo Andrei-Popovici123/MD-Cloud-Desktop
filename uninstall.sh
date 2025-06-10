@@ -27,25 +27,15 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-echo "Running deleteApiKey script..."
+# apikey
+echo "Removing API key..."
 node backend/src/utils/deleteApiKey.js >> "$logfile" 2>&1
 
 # docker
 echo ""
-if command -v docker >> "$logfile" 2>&1; then
-  if [ -f "$root_folder/docker-compose.yaml" ]; then
-    echo "Stopping Docker containers..."
-    if docker compose -f "$root_folder/docker-compose.yaml" down >> "$logfile" 2>&1; then
-      echo "Docker containers stopped and removed."
-    else
-      echo "Docker cleanup ran but some containers failed to stop."
-    fi
-  else
-    echo "No docker-compose.yaml found; skipping Docker cleanup."
-  fi
-else
-  echo "Docker not installed or not in PATH; skipping all Docker steps."
-fi
+echo "Removing Docker containers and images..."
+docker compose -p mddesktop down --rmi all >> "$logfile" 2>&1
+echo "Docker containers and images removed"
 
 # package
 echo ""
@@ -54,12 +44,12 @@ if apt list --installed  >> "$logfile" 2>&1 | grep -q "$app_package_name"; then
     echo "Package '$app_package_name' found. Attempting to remove..."
     apt remove "$app_package_name" -y  >> "$logfile" 2>&1
     if [ $? -eq 0 ]; then
-        echo " package uninstalled successfully."
+        echo "Package uninstalled successfully."
     else
         echo "Failed to uninstall package"
     fi
 else
-    echo "package '$app_package_name' not found -> skipping removal"
+    echo "Package '$app_package_name' not found -> skipping removal"
 fi
 
 # desktop shortcut
@@ -75,35 +65,35 @@ else
 fi
 
 echo ""
-echo "Deleting node_modules directories"
+echo "Deleting dependencies directories"
 
 # node_modules
 echo ""
 if [ -d "$root_folder/node_modules" ]; then
-    echo "Removing $root_folder/node_modules..."
+    echo "Removing electron dependencies..."
     rm -rf "$root_folder/node_modules" >> "$logfile" 2>&1
 else
-    echo "Electron node_modules directory not found -> skipping."
+    echo "Electron dependencies directory not found -> skipping."
 fi
 
 
 # frontend/node_modules
 echo ""
 if [ -d "$frontend_folder/node_modules" ]; then
-    echo "Removing $frontend_folder/node_modules..."
+    echo "Removing frontend dependencies..."
     rm -rf "$frontend_folder/node_modules" >> "$logfile" 2>&1
 else
-    echo "Frontend node_modules directory not found -> skipping."
+    echo "Frontend dependencies directory not found -> skipping."
 fi
 
 
 # backend/node_modules
 echo ""
 if [ -d "$backend_folder/node_modules" ]; then
-    echo "Removing $backend_folder/node_modules..."
+    echo "Removing backend dependencies..."
     rm -rf "$backend_folder/node_modules" >> "$logfile" 2>&1
 else
-    echo "Backend node_modules directory not found -> skipping."
+    echo "Backend dependencies directory not found -> skipping."
 fi
 
 

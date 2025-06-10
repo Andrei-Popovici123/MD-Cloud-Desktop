@@ -14,14 +14,17 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     Exit 1
 }
 
-Write-Host "Docker is installed. Checking if Docker Desktop is running..."
-
-if (-not ((docker ps 2>&1) -match '^(?!error)')) {
-    Write-Host "Docker Desktop is not running. Please start Docker Desktop and try again."
+$desktopExe = "$Env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
+if ( -not (Test-Path $desktopExe)) {
+    Write-Host "Docker Desktop is not installed. Please install it from https://docs.docker.com/desktop/setup/install/windows-install/"
     Exit 1
 }
+else {
+    Write-Host "Running Docker Desktop..."
+    docker desktop start  *>> $logFile
+    Start-Sleep -Seconds 10
+}
 
-Write-Host "Docker Desktop is running. Proceeding..."
 
 Write-Host "Installing backend npm packages..."
 Set-Location -Path .\backend -PassThru  *>> $logFile

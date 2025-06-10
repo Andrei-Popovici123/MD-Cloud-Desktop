@@ -36,22 +36,22 @@ function createWindow() {
 
 }
 
-  app.whenReady().then(()=>{
-    
+app.whenReady().then(() =>{
   createWindow();
-queuedFilePath = extractValidPath(process.argv);
+  queuedFilePath = extractValidPath(process.argv);
 
 
   app.on('activate', function (){
     if(BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
   });
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
+
 
 ipcMain.handle('run-middleware', async (_event, filePath) => {
     return new Promise((resolve, reject) => {

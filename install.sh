@@ -49,7 +49,7 @@ docker compose build >> "$logfile" 2>&1
 
 echo ""
 echo "Starting docker containers..."
-docker compose up -d >> "$logfile" 2>&1
+docker compose -p mddesktop up -d  >> "$logfile" 2>&1
 
 echo ""
 echo "Installing Electron npm packages..."
