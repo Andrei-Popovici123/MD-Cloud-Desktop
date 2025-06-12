@@ -6,7 +6,21 @@ const fs = require('fs');
 
 let mainWindow;
 let queuedFilePath = null;
+const DOCKER_DESKTOP_PATH = path.join(process.env.PROGRAMFILES, 'Docker', 'Docker', 'Docker Desktop.exe');
 
+function ensureDockerRunning() {
+  return new Promise((resolve, reject) => {
+    if (!fs.existsSync(DOCKER_DESKTOP_PATH)) {
+      return reject(new Error(`Cannot find Docker Desktop executable at ${DOCKER_DESKTOP_PATH}`));
+    }
+    const dockerProc = spawn(DOCKER_DESKTOP_PATH, [], { detached: true, stdio: 'ignore' });
+    dockerProc.unref();
+
+    setTimeout(() => {
+      resolve();
+    }, 10000);
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -36,7 +50,17 @@ function createWindow() {
 
 }
 
-app.whenReady().then(() =>{
+app.whenReady().then(async () =>{
+    if (process.platform === 'win32') {
+    try {
+      await ensureDockerRunning();
+      console.log('Docker is running. Proceeding.');
+    } catch (err) {
+      console.error('Docker failed to start:', err);
+      app.exit(1);
+      return;
+    }
+  }
   createWindow();
   queuedFilePath = extractValidPath(process.argv);
 
