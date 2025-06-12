@@ -25,7 +25,7 @@ def validate_path(user_path):
     
     if os.path.isfile(abs_path) and os.path.getsize(abs_path) > MAX_SIZE:
         log(f"File exceeds {MAX_SIZE} bytes limit")
-        exit(2)
+        sys.exit(2)
     
     return abs_path
 def get_file_metadata_and_stream(name, data, path, kind):
@@ -73,7 +73,7 @@ def zip_to_stdout(folder_path):
                 total_size += os.path.getsize(fp)
                 if total_size > MAX_SIZE:
                     log(f"Folder exceeds {MAX_SIZE} bytes limit")
-                    exit(2)
+                    sys.exit(2)
         
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:

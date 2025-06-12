@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { DragEvent, useEffect, useState } from "react";
+import React, { DragEvent, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 axios.defaults.baseURL = import.meta.env.PORT || "http://localhost:3000";
@@ -41,48 +41,52 @@ const FileUploader: React.FC = () => {
   }, [dataId]);
 
   useEffect(() => {
-    
+
     window.electron.ipcRenderer.on('context-binary-upload', async (filePath) => {
+      console.log("[frontend] Received path via IPC again:", filePath);
+      try {
+        const buffer = await window.electron.ipcRenderer.runMiddleware(filePath);
 
-    try {
-      const buffer = await window.electron.ipcRenderer.runMiddleware(filePath);
+        const uint8 = new Uint8Array(buffer);
 
-      const uint8 = new Uint8Array(buffer);
-
-      let headerEnd = -1;
-      for (let i = 0; i < uint8.length - 1; i++) {
-        if (uint8[i] === 0x0A && uint8[i + 1] === 0x0A) {
-          headerEnd = i;
-          break;
+        let headerEnd = -1;
+        for (let i = 0; i < uint8.length - 1; i++) {
+          if (uint8[i] === 0x0A && uint8[i + 1] === 0x0A) {
+            headerEnd = i;
+            break;
+          }
         }
-      }
 
-      if (headerEnd === -1) {
-        console.error('[frontend] No metadata delimiter (\\n\\n) found in buffer!');
-        return;
-      }
+        if (headerEnd === -1) {
+          console.error('[frontend] No metadata delimiter (\\n\\n) found in buffer!');
+          return;
+        }
 
-      const metadataText = new TextDecoder('utf-8').decode(uint8.slice(0, headerEnd));
-      const metadata = JSON.parse(metadataText);
+        const metadataText = new TextDecoder('utf-8').decode(uint8.slice(0, headerEnd));
+        const metadata = JSON.parse(metadataText);
 
-      const binary= uint8.slice(headerEnd + 2);
+        const binary = uint8.slice(headerEnd + 2);
 
-      const blob = new Blob([binary],{type: metadata.mimetype})
+        const blob = new Blob([binary], { type: metadata.mimetype })
 
-      const file = new File([blob],metadata.name,{
-        type: metadata.mimetype,
-        lastModified: metadata.lastModifie || Date.now()
-      });
-      handleUpload(file);
+        const file = new File([blob], metadata.name, {
+          type: metadata.mimetype,
+          lastModified: metadata.lastModifie || Date.now()
+        });
+        await handleUpload(file);
 
-    }catch (error) {
+      } catch (error) {
         console.error(' Error calling runMiddleware:', error);
       }
     });
-
-    // Cleanup the listener when the component unmounts
+    window.electron.ipcRenderer.onPythonExitCode((code) => {
+      if (code === 2) {
+        setUploadStatus("File is too big. Maximum size is 4 MB.");
+      }
+    });
     return () => {
       window.electron.ipcRenderer.removeAllListeners('context-binary-upload');
+      // window.electron.ipcRenderer.removeAllListeners('python-exit-code');
     };
   }, []);
 

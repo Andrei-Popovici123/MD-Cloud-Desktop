@@ -10,10 +10,17 @@ contextBridge.exposeInMainWorld('electron', {
     },
     removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
     runMiddleware: async (filePath) => {
-      
+
       const buffer = await ipcRenderer.invoke('run-middleware', filePath);
+      console.log('[main] Received filePath for run-middleware:', filePath);
 
       return buffer;
     },
+    onPythonExitCode: (callback) => {
+      ipcRenderer.on('python-exit-code', (_event, code) => {
+        console.log("sintem in python exit code");
+        callback(code);
+      });
+    }
   }
 });

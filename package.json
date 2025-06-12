@@ -18,6 +18,10 @@
   "build": {
     "appId": "com.yourcompany.yourapp",
     "productName": "MD-Desktop",
+    "extraFiles": [
+      "./electron/build/md.ico",
+       "./launcher.bat"
+    ],
     "win": {
       "target": "nsis",
       "icon": "electron/build/md.ico"
