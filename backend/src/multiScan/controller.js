@@ -1,4 +1,4 @@
-// GET /file/dataId/multiscan
+// GET /file/:dataId/multiscan
 
 const { getReport } = require("../fileUpload/mdService");
 const logger = require("../utils/logger");

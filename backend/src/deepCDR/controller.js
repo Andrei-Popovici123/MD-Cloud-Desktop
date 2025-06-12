@@ -1,4 +1,4 @@
-// GET /file/dataId/cdr
+// GET /file/:dataId/cdr
 
 const { getReport } = require("../fileUpload/mdService");
 const logger = require("../utils/logger");

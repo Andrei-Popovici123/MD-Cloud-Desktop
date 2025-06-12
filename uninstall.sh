@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-# need to do this command
-# chmod +x uninstall.sh
-
 # folders
 root_folder="$(dirname "$(readlink -f "$0")")"
 frontend_folder="$root_folder/frontend"
@@ -22,14 +19,18 @@ desktop_shortcut_path="$user_home/Desktop/${app_package_name}.desktop"
 
 # sudo check
 if [[ $EUID -ne 0 ]]; then
-    echo "This script requires root privileges to uninstall the package and manage Docker."
+    echo "This script requires root privileges to uninstall the package."
     echo "Please run with sudo: sudo ./uninstall.sh"
     exit 1
 fi
 
-# apikey
-echo "Removing API key..."
-node backend/src/utils/deleteApiKey.js >> "$logfile" 2>&1
+# delete apikey from .env file
+sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=/" .env
+
+# delete apikey from backend .env file
+sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=/" backend/.env
+
+echo "API keys have been removed from .env files"
 
 # docker
 echo ""
@@ -58,10 +59,8 @@ echo "Removing desktop shortcut..."
 if [ -f "$desktop_shortcut_path" ]; then
     rm "$desktop_shortcut_path"  >> "$logfile" 2>&1
     echo "Desktop shortcut removed."
-    #echo $desktop_shortcut_path
 else
     echo "Desktop shortcut not found -> skipping removal."
-    #echo $desktop_shortcut_path
 fi
 
 echo ""

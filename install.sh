@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 set -e
-# need to do this command
-# chmod +x install.sh
 
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 -apikey <your-api-key>"
@@ -20,19 +18,30 @@ fi
 
 echo "Docker is installed, proceeding..."
 
-# echo ""
-# echo "Installing libsecret package..."
-# sudo apt-get install libsecret-1-dev >> "$logfile" 2>&1
-
 
 echo ""
 echo "Installing backend npm packages..."
 cd backend >> "$logfile" 2>&1
 npm install >> "$logfile" 2>&1
 
-echo "Running saveApiKey script..."
-node src/utils/saveApiKey.js "$API_KEY" >> "$logfile" 2>&1
-echo "API key has been securely saved"
+if [ ! -z "$API_KEY" ]; then
+    root_env="$root_folder/.env"
+    backend_env="$root_folder/backend/.env"
+    
+    if [ ! -f "$root_env" ]; then
+        echo "OPSWAT_API_KEY=$API_KEY" > "$root_env"
+    else
+        sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=$API_KEY/" "$root_env"
+    fi
+    
+    if [ ! -f "$backend_env" ]; then
+        echo "OPSWAT_API_KEY=$API_KEY" > "$backend_env"
+    else
+        sed -i "s/OPSWAT_API_KEY=.*/OPSWAT_API_KEY=$API_KEY/" "$backend_env"
+    fi
+    
+    echo "API key has been updated in both .env files"
+fi
 
 cd .. >> "$logfile" 2>&1
 
@@ -67,7 +76,7 @@ echo ""
 echo "Adding desktop shortcut..."
 cp /usr/share/applications/md-desktop.desktop "$HOME/Desktop/" >> "$logfile" 2>&1
 
-if command -v gio > "$logfile" 2>&1; then
+if command -v gio &>/dev/null; then
   echo "Marking launcher as trusted..."
   gio set "$HOME/Desktop/md-desktop.desktop" metadata::trusted true >> "$logfile" 2>&1
 else

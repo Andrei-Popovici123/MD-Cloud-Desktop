@@ -1,4 +1,4 @@
-// GET /file/dataId/dlp
+// GET /file/:dataId/dlp
 
 const { getReport } = require("../fileUpload/mdService");
 const logger = require("../utils/logger");
